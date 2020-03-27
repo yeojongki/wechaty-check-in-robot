@@ -1,4 +1,4 @@
-import Config from '@/config'
+import Config from '../config'
 const config = Config.getInstance()
 
 export default function getWhiteListMap() {
