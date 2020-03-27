@@ -1,8 +1,8 @@
 import { Message } from 'wechaty'
 import { MessageType } from 'wechaty-puppet'
-import Config from '@/config'
-import event from '@/shared/events'
-import { EventTypes } from '@/constants/eventTypes'
+import Config from '../config'
+import event from '../shared/events'
+import { EventTypes } from '../constants/eventTypes'
 
 export async function onMessage(msg: Message) {
   // skip self
