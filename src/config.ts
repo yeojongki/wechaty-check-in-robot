@@ -14,7 +14,7 @@ export default class Config {
   config: Record<string, string>
 
   constructor() {
-    let conf = dotenv.config({ path: path.resolve(__dirname, '.env') })
+    let conf = dotenv.config({ path: path.resolve(__dirname, '..', '.env') })
     if (conf.error) {
       console.log(conf.error)
       throw new Error('.env file not found')
