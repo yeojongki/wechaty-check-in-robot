@@ -1,4 +1,3 @@
-import { Wechaty } from 'wechaty'
 import { createConnection, Connection } from 'typeorm'
 import { User } from '../entities/user.entity'
 import Config from '../config'
@@ -24,12 +23,13 @@ export function connect(): Promise<Connection> {
       logging: false,
     })
       .then((_connection) => {
+        console.log('数据库连接成功!')
         connection = _connection
         resolve(_connection)
       })
       .catch((error) => {
         reject(error)
-        console.log(error)
+        console.log('数据库连接失败!', error)
       })
   })
 }
@@ -42,8 +42,4 @@ export function findUserByWechat(
     const user = await connection.getRepository(User).findOne({ wechat })
     resolve(user)
   })
-}
-
-export function checkDBRoomUserData(bot: Wechaty) {
-  // const room =
 }

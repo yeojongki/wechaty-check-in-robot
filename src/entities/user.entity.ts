@@ -19,6 +19,8 @@ export class User extends Base {
   wechat!: string
 
   @Column({
+    default: null,
+    nullable: true,
     comment: '微信昵称',
   })
   wechatName!: string
@@ -42,6 +44,7 @@ export class User extends Base {
   leaveAt?: Date
 
   @Column({
+    nullable: true,
     name: 'enter_room_date',
     comment: '进入群组时间',
   })

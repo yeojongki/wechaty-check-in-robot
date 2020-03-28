@@ -4,6 +4,7 @@ import QrcodeTerminal from 'qrcode-terminal'
 import Messenger from '../shared/messenger'
 import { onError } from './onError'
 import Config from '../config'
+import { onMessage } from './onMessage'
 
 const config = Config.getInstance()
 
@@ -38,5 +39,6 @@ export const initBot = (): Promise<Wechaty> =>
         resolve(bot)
       })
       .on('error', onError)
+      .on('message', onMessage)
       .start()
   })

@@ -105,3 +105,4 @@ dist
 
 # wechaty
 *.memory-card.json
+*.users-init.json

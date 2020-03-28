@@ -23,4 +23,9 @@ export enum EventTypes {
    * 检测三天内未打卡成员
    */
   CHECK_THREE_DAY_NOT_CHECK_IN = 'CHECK_THREE_DAY_NOT_CHECK_IN',
+
+  /**
+   * 首次进入目标房间
+   */
+  FIRST_IN_TARGET_ROOM = 'FIRST_IN_TARGET_ROOM'
 }
