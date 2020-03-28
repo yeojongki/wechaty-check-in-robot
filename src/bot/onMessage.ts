@@ -3,9 +3,9 @@ import { MessageType } from 'wechaty-puppet'
 import Config from '../config'
 import event from '../shared/events'
 import { EventTypes } from '../constants/eventTypes'
-import { checkUserDataIsInit } from '@/shared/utils'
+import shared from '../shared/utils'
 
-let userDataInited: boolean = checkUserDataIsInit()
+let userDataInited: boolean = shared.checkUserDataIsInit()
 
 export async function onMessage(msg: Message) {
   // skip self
@@ -34,7 +34,7 @@ export async function onMessage(msg: Message) {
   // 监控目标房间
   if (room && (await room.topic()).includes(Config.getInstance().ROOM_NAME)) {
     if (!userDataInited) {
-      userDataInited = checkUserDataIsInit()
+      userDataInited = shared.checkUserDataIsInit()
       event.emit(EventTypes.FIRST_IN_TARGET_ROOM, room)
     }
 

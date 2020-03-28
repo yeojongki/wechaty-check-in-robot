@@ -7,7 +7,7 @@ import event from './shared/events'
 import { EventTypes } from './constants/eventTypes'
 import { User } from './entities'
 import { Wechaty, Room } from 'wechaty'
-import { getWhiteListMap, setUserDataIsInit } from './shared/utils'
+import shared from './shared/utils'
 import Messenger from './shared/messenger'
 
 const targetRoomName = Config.getInstance().ROOM_NAME
@@ -55,7 +55,7 @@ async function start() {
     const now = +new Date()
     const users = await connection.getRepository(User).find()
     const notCheckedMap: Record<string, boolean> = {}
-    const whiteListMap = getWhiteListMap()
+    const whiteListMap = shared.getWhiteListMap()
     const ONE_DAY = 86400
 
     users.forEach((user) => {
@@ -109,7 +109,7 @@ async function start() {
     const now = +new Date()
     const users = await connection.getRepository(User).find()
     let notCheckedUsers: string = ''
-    const whiteListMap = getWhiteListMap()
+    const whiteListMap = shared.getWhiteListMap()
     const THREE_DAY = 86400 * 3
     users.forEach((user) => {
       if (!whiteListMap[user.wechat]) {
@@ -149,7 +149,7 @@ async function start() {
         Promise.all(pList)
           .then(() => {
             console.log(`成功初始化${pList.length}位用户信息`)
-            setUserDataIsInit()
+            shared.setUserDataIsInit()
           })
           .catch((err) => {
             console.error('保存初始化用户信息失败', err)
