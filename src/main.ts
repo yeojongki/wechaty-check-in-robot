@@ -56,17 +56,18 @@ async function start() {
     const users = await connection.getRepository(User).find()
     const notCheckedMap: Record<string, boolean> = {}
     const whiteListMap = getWhiteListMap()
+    const ONE_DAY = 86400
 
     users.forEach((user) => {
       // 排除白名单和当天请假的
       if (
         !whiteListMap[user.wechat] ||
-        (user.leaveAt && now - +user.leaveAt < 86400)
+        (user.leaveAt && now - +user.leaveAt < ONE_DAY)
       ) {
         // 没有签到记录或者今天没有签到
         if (
-          !user.checkedIn ||
-          (user.checkedIn && now - +user.checkedIn > 86400)
+          (!user.checkedIn && now - +user.enterRoomDate > ONE_DAY) ||
+          (user.checkedIn && now - +user.checkedIn > ONE_DAY)
         ) {
           notCheckedMap[user.wechat] = true
         }
@@ -130,9 +131,10 @@ async function start() {
     try {
       const roomUsers = await room.memberAll()
       const pList: Promise<User>[] = []
+      const now = new Date()
       roomUsers.forEach((roomUser) => {
         const user = new User()
-        user.enterRoomDate = new Date()
+        user.enterRoomDate = now
         user.wechat = roomUser.id
         user.wechatName = roomUser.name()
         pList.push(connection.getRepository(User).save(user))

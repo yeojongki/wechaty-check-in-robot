@@ -1,11 +1,11 @@
 export enum EventTypes {
   /**
-   * 签到事件
+   * 用户签到事件
    */
   CHECK_IN = 'CHECK_IN',
 
   /**
-   * 请假事件
+   * 用户请假事件
    */
   ASK_FOR_LEAVE = 'ASK_FOR_LEAVE',
 
