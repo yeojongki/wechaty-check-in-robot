@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm'
 import { Base } from './base.entity'
 
 @Entity()
@@ -13,6 +13,7 @@ export class User extends Base {
   })
   isWhiteList!: number
 
+  @Index({ unique: true })
   @Column({
     comment: '微信号',
   })
