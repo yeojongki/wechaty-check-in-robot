@@ -91,11 +91,13 @@ async function start() {
         }
       })
 
+      console.log(`${new Date()} 未打卡同学信息: ${usersToAt}`)
+
       // TODO: 名单太长可能需要分多条发送
       if (count) {
         room.wechaty.say(
           usersToAt +
-            `以上${count}位同学昨日没有学习打卡噢，今天快快学习起来把！已请假的同学可忽略~`,
+            `以上${count}位同学昨日没有学习打卡噢，今天快快学习起来把！`,
         )
       }
     } else {
@@ -116,11 +118,14 @@ async function start() {
           (user.checkedIn && now - +user.checkedIn > THREE_DAY) ||
           (!user.checkedIn && now - +user.enterRoomDate > THREE_DAY)
         ) {
-          notCheckedUsers += `${user.wechat} `
+          notCheckedUsers += `${user.wechat}、`
         }
       }
     })
-    notCheckedUsers && Messenger.send('三天都没打卡的人', notCheckedUsers)
+
+    notCheckedUsers = notCheckedUsers.substring(0, notCheckedUsers.length - 1)
+    console.log(`${new Date()} 三天都未打卡的同学: ${notCheckedUsers}`)
+    notCheckedUsers && Messenger.send('三天都未打卡的同学', notCheckedUsers)
   })
 
   event.on(EventTypes.FIRST_IN_TARGET_ROOM, async (room: Room) => {
@@ -170,8 +175,8 @@ async function start() {
           nameList += `${item.name()},`
           wechatIdList += `${item.id},`
         })
-        nameList = nameList.substring(0, inviteeList.length - 1)
-        wechatIdList = wechatIdList.substring(0, inviteeList.length - 1)
+        nameList = nameList.substring(0, nameList.length - 1)
+        wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
 
         room.say('欢迎新同学加入[加油]')
         console.log(`Room got new member ${nameList}, invited by ${inviter}`)
