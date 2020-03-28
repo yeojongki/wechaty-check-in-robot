@@ -47,6 +47,7 @@ export async function onMessage(msg: Message) {
         wechat,
         time,
       })
+      console.log(`用户「${wechat}」打卡成功✅ at ${time}`)
     }
 
     // 判定请假
@@ -59,6 +60,7 @@ export async function onMessage(msg: Message) {
         time,
       })
       room.say(`@${username} 请假成功✅`)
+      console.log(`用户「${wechat}」请假成功✅ at ${time}`)
     }
   }
 }

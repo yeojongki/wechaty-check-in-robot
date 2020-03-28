@@ -28,9 +28,9 @@ async function start() {
         user.checkedIn = time
       }
       await connection.getRepository(User).save(user)
-      console.log(`「${wechat}」打卡成功 at ${time}`)
+      console.log(`用户「${wechat}」打卡数据写入成功 at ${time}`)
     } catch (error) {
-      console.log(`「${wechat}」 打卡失败 at ${time}`, error)
+      console.log(`用户「${wechat}」打卡数据写入失败 at ${time}`, error)
     }
   })
 
@@ -45,9 +45,9 @@ async function start() {
         user.leaveAt = time
       }
       await connection.getRepository(User).save(user)
-      console.log(`「${wechat}」 请假成功 at ${time}`)
+      console.log(`用户「${wechat}」请假数据写入成功 at ${time}`)
     } catch (error) {
-      console.log(`「${wechat}」 请假失败 at ${time}`, error)
+      console.log(`用户「${wechat}」请假数据写入失败 at ${time}`, error)
     }
   })
 
@@ -185,10 +185,10 @@ async function start() {
           })
           Promise.all(pList)
             .then(() => {
-              console.log('保存新用户信息成功', wechatIdList)
+              console.log('写入新用户信息成功', wechatIdList)
             })
             .catch((err) => {
-              console.error('保存新用户信息失败', err)
+              console.error('写入新用户信息失败', err)
             })
         }, 0)
       })
