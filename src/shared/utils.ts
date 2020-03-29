@@ -4,18 +4,6 @@ import Config from '../config'
 const config = Config.getInstance()
 const USER_INIT_FILE_NAME = `${config.ROOM_NAME}.users-init.json`
 
-function getWhiteListMap() {
-  let whiteListMap: Record<string, boolean> = {}
-  whiteListMap = config.WHITE_LIST
-    ? config.WHITE_LIST.reduce((p, n) => {
-        p[n] = true
-        return p
-      }, whiteListMap)
-    : {}
-
-  return whiteListMap
-}
-
 /**
  * 判断是否初始化用户房间信息
  */
@@ -39,7 +27,6 @@ function setUserDataIsInit(): void {
 }
 
 export default {
-  getWhiteListMap,
   checkUserDataIsInit,
   setUserDataIsInit,
 }

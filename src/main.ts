@@ -55,21 +55,20 @@ async function start() {
     const now = +new Date()
     const users = await connection.getRepository(User).find()
     const notCheckedMap: Record<string, boolean> = {}
-    const whiteListMap = shared.getWhiteListMap()
     const ONE_DAY = 86400 * 1000
 
     for (const user of users) {
       // 排除白名单和当天请假的
       if (
-        whiteListMap[user.wechat] ||
-        (user.leaveAt && now - +user.leaveAt < ONE_DAY)
+        user.isWhiteList ||
+        (user.leaveAt && now - +user.leaveAt <= ONE_DAY)
       ) {
         continue
       } else {
         // 没有签到记录或者今天没有签到
         if (
-          (!user.checkedIn && now - +user.enterRoomDate > ONE_DAY) ||
-          (user.checkedIn && now - +user.checkedIn > ONE_DAY)
+          (!user.checkedIn && now - +user.enterRoomDate >= ONE_DAY) ||
+          (user.checkedIn && now - +user.checkedIn >= ONE_DAY)
         ) {
           notCheckedMap[user.wechat] = true
         }
@@ -113,10 +112,9 @@ async function start() {
     const now = +new Date()
     const users = await connection.getRepository(User).find()
     let notCheckedUsers: string = ''
-    const whiteListMap = shared.getWhiteListMap()
     const THREE_DAY = 86400 * 3 * 1000
     users.forEach((user) => {
-      if (!whiteListMap[user.wechat]) {
+      if (!user.isWhiteList) {
         // 三天没有签到
         if (
           (user.checkedIn && now - +user.checkedIn > THREE_DAY) ||
@@ -128,9 +126,10 @@ async function start() {
     })
 
     notCheckedUsers = notCheckedUsers.substring(0, notCheckedUsers.length - 1)
-    console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
-    notCheckedUsers &&
+    if (notCheckedUsers) {
+      console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
       Messenger.send(`${new Date()} 三天都未打卡： ${notCheckedUsers}`)
+    }
   })
 
   event.on(EventTypes.FIRST_IN_TARGET_ROOM, async (room: Room) => {
