@@ -188,20 +188,23 @@ async function start() {
     try {
       const room = await bot.Room.find(targetRoomName)
       if (room) {
-        room.on('join', (inviteeList, inviter) => {
-          let nameList = ''
-          let wechatIdList = ''
-          inviteeList.forEach((item) => {
-            nameList += `${item.name()},`
-            wechatIdList += `${item.id},`
-          })
-          nameList = nameList.substring(0, nameList.length - 1)
-          wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
+        room
+          .on('join', (inviteeList, inviter) => {
+            let nameList = ''
+            let wechatIdList = ''
+            inviteeList.forEach((user) => {
+              nameList += `${user.name()},`
+              wechatIdList += `${user.id},`
+            })
+            nameList = nameList.substring(0, nameList.length - 1)
+            wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
 
-          room.say('欢迎新同学加入[加油]')
-          console.log(`🌟[Notice]: ${inviter} 邀请了新成员: ${nameList}`)
+            room.say('欢迎新同学加入[加油]')
+            console.log(
+              `🌟[Notice]: ${inviter} 邀请了${inviteeList.length}位新成员: ${nameList}`,
+            )
+            console.log(`📦[DB]: 开始写入新用户信息: ${nameList}`)
 
-          setTimeout(() => {
             const pList: Promise<User>[] = []
             inviteeList.forEach((newUser) => {
               const user = new User()
@@ -212,13 +215,52 @@ async function start() {
             })
             Promise.all(pList)
               .then(() => {
-                console.log('📦[DB]: 写入新用户信息成功', wechatIdList)
+                console.log(`📦[DB]: 写入新用户数据成功 - ${wechatIdList}`)
               })
               .catch((err) => {
-                console.error('📦[DB]: 写入新用户信息失败', err)
+                console.error('📦[DB]: 写入新用户数据失败', wechatIdList, err)
               })
-          }, 0)
-        })
+          })
+          .on('leave', async (leaverList, remover) => {
+            let nameList = ''
+            let wechatIdList = ''
+            leaverList.forEach((user) => {
+              nameList += `${user.name()},`
+              wechatIdList += `${user.id},`
+            })
+            nameList = nameList.substring(0, nameList.length - 1)
+            wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
+
+            console.log(
+              `🌟[Notice]: ${remover} 移除了${leaverList.length}位成员: ${nameList}`,
+            )
+            console.log(`📦[DB]: 开始写入移除成员数据: ${nameList}`)
+
+            const pList: Promise<User>[] = []
+            for (const roomUser of leaverList) {
+              let toSet = await connection
+                .getRepository(User)
+                .findOne({ wechat: roomUser.id })
+              if (toSet) {
+                pList.push(connection.getRepository(User).softRemove(toSet))
+              }
+            }
+
+            Promise.all(pList)
+              .then(() => {
+                console.log(
+                  `📦[DB]: 写入移出群聊数据成功 - ${leaverList}`,
+                  wechatIdList,
+                )
+              })
+              .catch((err) => {
+                console.error(
+                  '📦[DB]: 写入用户移出群聊数据失败',
+                  wechatIdList,
+                  err,
+                )
+              })
+          })
       }
     } catch (error) {
       console.error('🏹[Event]: find room error in initBot().then()', error)

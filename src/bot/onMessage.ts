@@ -15,7 +15,7 @@ export async function onMessage(msg: Message) {
   }
 
   if (msg.age() > 3 * 60) {
-    console.info('🌟[Notice]: 消息太旧(3分钟前)被忽略', msg)
+    console.log('🌟[Notice]: 消息太旧(3分钟前)被忽略', msg)
     return
   }
 
@@ -32,8 +32,10 @@ export async function onMessage(msg: Message) {
       event.emit(EventTypes.FIRST_IN_TARGET_ROOM, room)
     }
 
+    const msgText = msg.text()
+
     // 判定打卡成功
-    if (msg.text().includes('打卡') || msg.type() === MessageType.Image) {
+    if (msgText.includes('打卡') || msg.type() === MessageType.Image) {
       const wechat = from.id
       const time = new Date()
 
@@ -52,7 +54,7 @@ export async function onMessage(msg: Message) {
     }
 
     // 判定请假
-    if (msg.text().includes('请假')) {
+    if (msgText.includes('请假')) {
       const wechat = from.id
       const username = from.name()
       const time = new Date()
