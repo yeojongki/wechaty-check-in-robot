@@ -6,6 +6,7 @@ import { EventTypes } from '../constants/eventTypes'
 import shared from '../shared/utils'
 
 let userDataInited: boolean = shared.checkUserDataIsInit()
+const checkInMap = new Map<string, Date>()
 
 export async function onMessage(msg: Message) {
   // skip self
@@ -14,12 +15,7 @@ export async function onMessage(msg: Message) {
   }
 
   if (msg.age() > 3 * 60) {
-    console.info(
-      'Bot',
-      'on(message) skip age("%d") > 3 * 60 seconds: "%s"',
-      msg.age(),
-      msg,
-    )
+    console.info('🌟[Notice]: 消息太旧(3分钟前)被忽略', msg)
     return
   }
 
@@ -29,8 +25,6 @@ export async function onMessage(msg: Message) {
     return
   }
 
-  // console.log((room ? '[' + (await room.topic()) + ']' : '') + '<' + from.name() + '>' + ':' + msg)
-
   // 监控目标房间
   if (room && (await room.topic()).includes(Config.getInstance().ROOM_NAME)) {
     if (!userDataInited) {
@@ -38,16 +32,23 @@ export async function onMessage(msg: Message) {
       event.emit(EventTypes.FIRST_IN_TARGET_ROOM, room)
     }
 
-    // const { id, owner } = room
     // 判定打卡成功
     if (msg.text().includes('打卡') || msg.type() === MessageType.Image) {
       const wechat = from.id
       const time = new Date()
+
+      // 过滤三秒内重复打卡信息
+      const lastCheckIn = checkInMap.get(wechat)
+      if (lastCheckIn && +time - +lastCheckIn < 3000) {
+        return
+      }
+      checkInMap.set(wechat, time)
+
       event.emit(EventTypes.CHECK_IN, {
         wechat,
         time,
       })
-      console.log(`用户「${wechat}」打卡成功✅ at ${time}`)
+      console.log(`📌[Check In]: 检测到打卡 - 用户「${wechat}」`)
     }
 
     // 判定请假
@@ -60,7 +61,7 @@ export async function onMessage(msg: Message) {
         time,
       })
       room.say(`@${username} 请假成功✅`)
-      console.log(`用户「${wechat}」请假成功✅ at ${time}`)
+      console.log(`✂️[Ask For Leave]: 检测到请假 - 用户「${wechat}」`)
     }
   }
 }

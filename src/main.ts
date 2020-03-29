@@ -11,20 +11,12 @@ import Messenger from './shared/messenger'
 
 const targetRoomName = Config.getInstance().ROOM_NAME
 let isInitUserDataIng = false
-const checkInMap = new Map<string, Date>()
 
 async function start() {
   let robot: Wechaty | null = null
   const connection = await connect()
 
   event.on(EventTypes.CHECK_IN, async ({ wechat, time }) => {
-    // 过滤三秒内重复打卡信息
-    const lastCheckIn = checkInMap.get(wechat)
-    if (lastCheckIn && +time - +lastCheckIn < 3000) {
-      return
-    }
-    checkInMap.set(wechat, time)
-
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
       if (toUpdate) {
@@ -35,9 +27,9 @@ async function start() {
         toUpdate.checkedIn = time
       }
       await connection.getRepository(User).save(toUpdate)
-      console.log(`用户「${wechat}」打卡数据写入成功 at ${time}`)
+      console.log(`📦[DB]: 打卡数据写入成功 - 用户「${wechat}」`)
     } catch (error) {
-      console.log(`用户「${wechat}」打卡数据写入失败 at ${time}`, error)
+      console.log(`📦[DB]: 打卡数据写入失败 - 用户「${wechat}」`, error)
     }
   })
 
@@ -52,9 +44,9 @@ async function start() {
         toUpdate.leaveAt = time
       }
       await connection.getRepository(User).save(toUpdate)
-      console.log(`用户「${wechat}」请假数据写入成功 at ${time}`)
+      console.log(`📦[DB]: 请假数据写入成功 - 用户「${wechat}」`)
     } catch (error) {
-      console.log(`用户「${wechat}」请假数据写入失败 at ${time}`, error)
+      console.log(`📦[DB]: 请假数据写入失败 - 用户「${wechat}」`, error)
     }
   })
 
@@ -86,31 +78,33 @@ async function start() {
   })
 
   event.on(EventTypes.DO_BOT_NOTICE, async (wechatIdMap) => {
-    const wechaty = robot ? robot : await initBot()
-    const room = await wechaty.Room.find(targetRoomName)
-    if (room) {
-      const allUsers = await room.memberAll()
-      let usersToAt = ''
-      let count = 0
+    try {
+      const wechaty = robot ? robot : await initBot()
+      const room = await wechaty.Room.find(targetRoomName)
+      if (room) {
+        const allUsers = await room.memberAll()
+        let usersToAt = ''
+        let count = 0
 
-      allUsers.forEach((user) => {
-        if (wechatIdMap[user.id]) {
-          count++
-          usersToAt += `@${user.name()} `
+        allUsers.forEach((user) => {
+          if (wechatIdMap[user.id]) {
+            count++
+            usersToAt += `@${user.name()} `
+          }
+        })
+
+        console.log(`🌟[Notice]: 昨日未打卡同学如下, ${usersToAt}`)
+
+        // TODO: 名单太长可能需要分多条发送
+        if (count) {
+          room.wechaty.say(
+            usersToAt +
+              `以上${count}位同学昨日没有学习打卡噢，今天快快学习起来吧！`,
+          )
         }
-      })
-
-      console.log(`${new Date()} 未打卡同学信息: ${usersToAt}`)
-
-      // TODO: 名单太长可能需要分多条发送
-      if (count) {
-        room.wechaty.say(
-          usersToAt +
-            `以上${count}位同学昨日没有学习打卡噢，今天快快学习起来把！`,
-        )
       }
-    } else {
-      console.info('not found target room', targetRoomName)
+    } catch (error) {
+      console.error('🏹[Event]: error in DO_BOT_NOTICE', error)
     }
   })
 
@@ -133,15 +127,16 @@ async function start() {
     })
 
     notCheckedUsers = notCheckedUsers.substring(0, notCheckedUsers.length - 1)
-    console.log(`${new Date()} 三天都未打卡的同学: ${notCheckedUsers}`)
-    notCheckedUsers && Messenger.send('三天都未打卡的同学', notCheckedUsers)
+    console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
+    notCheckedUsers &&
+      Messenger.send(`${new Date()} 三天都未打卡： ${notCheckedUsers}`)
   })
 
   event.on(EventTypes.FIRST_IN_TARGET_ROOM, async (room: Room) => {
     if (isInitUserDataIng) return
     isInitUserDataIng = true
     // 初始化
-    console.log('首次进入房间, 开始初始化用户信息')
+    console.log('🌟[Notice]: 首次进入房间, 开始初始化用户信息')
     try {
       const roomUsers = await room.memberAll()
       const pList: Promise<User>[] = []
@@ -166,11 +161,11 @@ async function start() {
       if (pList.length) {
         Promise.all(pList)
           .then(() => {
-            console.log(`写入初始化${pList.length}位用户信息成功`)
+            console.log(`📦[DB]: 写入初始化${pList.length}位用户信息成功`)
             shared.setUserDataIsInit()
           })
           .catch((err) => {
-            console.error('写入初始化用户信息失败', err)
+            console.error('📦[DB]: 写入初始化用户信息失败', err)
           })
           .finally(() => {
             isInitUserDataIng = false
@@ -178,46 +173,50 @@ async function start() {
       }
     } catch (error) {
       isInitUserDataIng = false
-      console.error('初始化用户信息失败', error)
+      console.error('🏹[Event]: 初始化用户信息失败 in FIRST_IN_TARGET_ROOM', error)
     }
   })
 
   initBot().then(async (bot) => {
     robot = bot
 
-    const room = await bot.Room.find(targetRoomName)
-    if (room) {
-      room.on('join', (inviteeList, inviter) => {
-        let nameList = ''
-        let wechatIdList = ''
-        inviteeList.forEach((item) => {
-          nameList += `${item.name()},`
-          wechatIdList += `${item.id},`
-        })
-        nameList = nameList.substring(0, nameList.length - 1)
-        wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
-
-        room.say('欢迎新同学加入[加油]')
-        console.log(`Room got new member ${nameList}, invited by ${inviter}`)
-
-        setTimeout(() => {
-          const pList: Promise<User>[] = []
-          inviteeList.forEach((newUser) => {
-            const user = new User()
-            user.enterRoomDate = new Date()
-            user.wechat = newUser.id
-            user.wechatName = newUser.name()
-            pList.push(connection.getRepository(User).save(user))
+    try {
+      const room = await bot.Room.find(targetRoomName)
+      if (room) {
+        room.on('join', (inviteeList, inviter) => {
+          let nameList = ''
+          let wechatIdList = ''
+          inviteeList.forEach((item) => {
+            nameList += `${item.name()},`
+            wechatIdList += `${item.id},`
           })
-          Promise.all(pList)
-            .then(() => {
-              console.log('写入新用户信息成功', wechatIdList)
+          nameList = nameList.substring(0, nameList.length - 1)
+          wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
+
+          room.say('欢迎新同学加入[加油]')
+          console.log(`🌟[Notice]: ${inviter} 邀请了新成员: ${nameList}`)
+
+          setTimeout(() => {
+            const pList: Promise<User>[] = []
+            inviteeList.forEach((newUser) => {
+              const user = new User()
+              user.enterRoomDate = new Date()
+              user.wechat = newUser.id
+              user.wechatName = newUser.name()
+              pList.push(connection.getRepository(User).save(user))
             })
-            .catch((err) => {
-              console.error('写入新用户信息失败', err)
-            })
-        }, 0)
-      })
+            Promise.all(pList)
+              .then(() => {
+                console.log('📦[DB]: 写入新用户信息成功', wechatIdList)
+              })
+              .catch((err) => {
+                console.error('📦[DB]: 写入新用户信息失败', err)
+              })
+          }, 0)
+        })
+      }
+    } catch (error) {
+      console.error('🏹[Event]: find room error in initBot().then()', error)
     }
   })
 }
