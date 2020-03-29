@@ -1,4 +1,3 @@
-require('module-alias/register')
 import 'reflect-metadata'
 import Config from './config'
 import { connect, findUserByWechat } from './database'
@@ -12,22 +11,30 @@ import Messenger from './shared/messenger'
 
 const targetRoomName = Config.getInstance().ROOM_NAME
 let isInitUserDataIng = false
+const checkInMap = new Map<string, Date>()
 
 async function start() {
   let robot: Wechaty | null = null
   const connection = await connect()
 
   event.on(EventTypes.CHECK_IN, async ({ wechat, time }) => {
+    // 过滤三秒内重复打卡信息
+    const lastCheckIn = checkInMap.get(wechat)
+    if (lastCheckIn && +time - +lastCheckIn < 3000) {
+      return
+    }
+    checkInMap.set(wechat, time)
+
     try {
-      let user = await findUserByWechat(connection, wechat)
-      if (user) {
-        user.checkedIn = time
+      let toUpdate = await findUserByWechat(connection, wechat)
+      if (toUpdate) {
+        toUpdate.leaveAt = time
       } else {
-        user = new User()
-        user.wechat = wechat
-        user.checkedIn = time
+        toUpdate = new User()
+        toUpdate.wechat = wechat
+        toUpdate.checkedIn = time
       }
-      await connection.getRepository(User).save(user)
+      await connection.getRepository(User).save(toUpdate)
       console.log(`用户「${wechat}」打卡数据写入成功 at ${time}`)
     } catch (error) {
       console.log(`用户「${wechat}」打卡数据写入失败 at ${time}`, error)
@@ -36,15 +43,15 @@ async function start() {
 
   event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, time }) => {
     try {
-      let user = await findUserByWechat(connection, wechat)
-      if (user) {
-        user.leaveAt = time
+      let toUpdate = await findUserByWechat(connection, wechat)
+      if (toUpdate) {
+        toUpdate.leaveAt = time
       } else {
-        user = new User()
-        user.wechat = wechat
-        user.leaveAt = time
+        toUpdate = new User()
+        toUpdate.wechat = wechat
+        toUpdate.leaveAt = time
       }
-      await connection.getRepository(User).save(user)
+      await connection.getRepository(User).save(toUpdate)
       console.log(`用户「${wechat}」请假数据写入成功 at ${time}`)
     } catch (error) {
       console.log(`用户「${wechat}」请假数据写入失败 at ${time}`, error)
@@ -137,28 +144,38 @@ async function start() {
       const roomUsers = await room.memberAll()
       const pList: Promise<User>[] = []
       const now = new Date()
-      roomUsers.forEach((roomUser) => {
-        const user = new User()
-        user.enterRoomDate = now
-        user.wechat = roomUser.id
-        user.wechatName = roomUser.name()
-        pList.push(connection.getRepository(User).save(user))
-      })
+
+      for (const roomUser of roomUsers) {
+        let toUpdate = await connection
+          .getRepository(User)
+          .findOne({ wechat: roomUser.id })
+        if (toUpdate) {
+          toUpdate.enterRoomDate = now
+          toUpdate.wechatName = roomUser.name()
+        } else {
+          toUpdate = new User()
+          toUpdate.enterRoomDate = now
+          toUpdate.wechat = roomUser.id
+          toUpdate.wechatName = roomUser.name()
+        }
+        pList.push(connection.getRepository(User).save(toUpdate))
+      }
 
       if (pList.length) {
         Promise.all(pList)
           .then(() => {
-            console.log(`成功初始化${pList.length}位用户信息`)
+            console.log(`写入初始化${pList.length}位用户信息成功`)
             shared.setUserDataIsInit()
           })
           .catch((err) => {
-            console.error('保存初始化用户信息失败', err)
+            console.error('写入初始化用户信息失败', err)
           })
           .finally(() => {
             isInitUserDataIng = false
           })
       }
     } catch (error) {
+      isInitUserDataIng = false
       console.error('初始化用户信息失败', error)
     }
   })
