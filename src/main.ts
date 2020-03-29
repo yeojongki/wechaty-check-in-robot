@@ -63,14 +63,16 @@ async function start() {
     const users = await connection.getRepository(User).find()
     const notCheckedMap: Record<string, boolean> = {}
     const whiteListMap = shared.getWhiteListMap()
-    const ONE_DAY = 86400
+    const ONE_DAY = 86400 * 1000
 
-    users.forEach((user) => {
+    for (const user of users) {
       // 排除白名单和当天请假的
       if (
-        !whiteListMap[user.wechat] ||
+        whiteListMap[user.wechat] ||
         (user.leaveAt && now - +user.leaveAt < ONE_DAY)
       ) {
+        continue
+      } else {
         // 没有签到记录或者今天没有签到
         if (
           (!user.checkedIn && now - +user.enterRoomDate > ONE_DAY) ||
@@ -79,8 +81,8 @@ async function start() {
           notCheckedMap[user.wechat] = true
         }
       }
-      event.emit(EventTypes.DO_BOT_NOTICE, notCheckedMap)
-    })
+    }
+    event.emit(EventTypes.DO_BOT_NOTICE, notCheckedMap)
   })
 
   event.on(EventTypes.DO_BOT_NOTICE, async (wechatIdMap) => {
@@ -117,7 +119,7 @@ async function start() {
     const users = await connection.getRepository(User).find()
     let notCheckedUsers: string = ''
     const whiteListMap = shared.getWhiteListMap()
-    const THREE_DAY = 86400 * 3
+    const THREE_DAY = 86400 * 3 * 1000
     users.forEach((user) => {
       if (!whiteListMap[user.wechat]) {
         // 三天没有签到

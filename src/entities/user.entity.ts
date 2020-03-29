@@ -28,7 +28,7 @@ export class User extends Base {
 
   @Column({
     name: 'check_in',
-    default: null,
+    nullable: true,
     type: 'timestamp',
     precision: 0,
     comment: '打卡时间',
@@ -37,7 +37,7 @@ export class User extends Base {
 
   @Column({
     name: 'leave_at',
-    default: null,
+    nullable: true,
     type: 'timestamp',
     precision: 0,
     comment: '请假时间',
