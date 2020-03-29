@@ -28,7 +28,7 @@ async function start() {
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
       if (toUpdate) {
-        toUpdate.leaveAt = time
+        toUpdate.checkedIn = time
       } else {
         toUpdate = new User()
         toUpdate.wechat = wechat
