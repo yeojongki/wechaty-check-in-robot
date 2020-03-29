@@ -18,6 +18,7 @@ async function start() {
   const connection = await connect()
 
   event.on(EventTypes.CHECK_IN, async ({ wechat, time }) => {
+    console.log('🌟[Notice]: 开始打卡')
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
       if (toUpdate) {
@@ -35,6 +36,7 @@ async function start() {
   })
 
   event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, time }) => {
+    console.log('🌟[Notice]: 开始请假')
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
       if (toUpdate) {
@@ -52,6 +54,7 @@ async function start() {
   })
 
   event.on(EventTypes.CHECK_TODAY_USER_CHECK_IN, async () => {
+    console.log('🌟[Notice]: 开始检测今天用户签到记录')
     const now = +new Date()
     const users = await connection.getRepository(User).find()
     const notCheckedMap: Record<string, boolean> = {}
@@ -78,30 +81,39 @@ async function start() {
   })
 
   event.on(EventTypes.DO_BOT_NOTICE, async (wechatIdMap) => {
+    console.log('🌟[Notice]: 开始发布昨天成员未打卡情况')
     try {
       const wechaty = robot ? robot : await initBot()
       const room = await wechaty.Room.find(targetRoomName)
+      const toDeleteIds: string[] = []
+
       if (room) {
         const allUsers = await room.memberAll()
         let usersToAt = ''
         let count = 0
 
-        allUsers.forEach((user) => {
+        for (const user of allUsers) {
           if (wechatIdMap[user.id]) {
-            count++
-            usersToAt += `@${user.name()} `
+            const isDeleted = await room.has(user)
+            isDeleted && toDeleteIds.push(user.id)
+            if (!isDeleted) {
+              count++
+              usersToAt += `@${user.name()} `
+            }
           }
-        })
+        }
 
-        console.log(`🌟[Notice]: 昨日未打卡同学如下, ${usersToAt}`)
+        console.log(`🌟[Notice]: 昨日未打卡同学如下: ${usersToAt}`)
 
         // TODO: 名单太长可能需要分多条发送
         if (count) {
-          room.wechaty.say(
+          await room.say(
             usersToAt +
               `以上${count}位同学昨日没有学习打卡噢，今天快快学习起来吧！`,
           )
         }
+
+        toDeleteIds.length && event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
       }
     } catch (error) {
       console.error('🏹[Event]: error in DO_BOT_NOTICE', error)
@@ -109,26 +121,53 @@ async function start() {
   })
 
   event.on(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN, async () => {
-    const now = +new Date()
-    const users = await connection.getRepository(User).find()
-    let notCheckedUsers: string = ''
-    const THREE_DAY = 86400 * 3 * 1000
-    users.forEach((user) => {
-      if (!user.isWhiteList) {
-        // 三天没有签到
-        if (
-          (user.checkedIn && now - +user.checkedIn > THREE_DAY) ||
-          (!user.checkedIn && now - +user.enterRoomDate > THREE_DAY)
-        ) {
-          notCheckedUsers += `${user.wechat}、`
-        }
-      }
-    })
+    console.log('🌟[Notice]: 开始检测三天内未打卡成员')
+    try {
+      const now = +new Date()
+      const users = await connection.getRepository(User).find()
+      const wechaty = robot ? robot : await initBot()
+      const room = await wechaty.Room.find(targetRoomName)
+      if (room) {
+        const roomUsers = await room.memberAll()
+        // { id: boolean }
+        const roomUsersMap = new Map<string, boolean>()
+        roomUsers.forEach((u) => {
+          roomUsersMap.set(u.id, true)
+        })
+        const toDeleteIds: string[] = []
 
-    notCheckedUsers = notCheckedUsers.substring(0, notCheckedUsers.length - 1)
-    if (notCheckedUsers) {
-      console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
-      Messenger.send(`${new Date()} 三天都未打卡： ${notCheckedUsers}`)
+        let notCheckedUsers: string = ''
+        const THREE_DAY = 86400 * 3 * 1000
+
+        for (const user of users) {
+          if (!user.isWhiteList) {
+            // 三天没有签到
+            if (
+              (user.checkedIn && now - +user.checkedIn > THREE_DAY) ||
+              (!user.checkedIn && now - +user.enterRoomDate > THREE_DAY)
+            ) {
+              notCheckedUsers += `${user.wechat}、`
+              if (room) {
+                const isDeleted = !roomUsersMap.get(user.wechat)
+                isDeleted && toDeleteIds.push(user.wechat)
+              }
+            }
+          }
+        }
+
+        notCheckedUsers = notCheckedUsers.substring(
+          0,
+          notCheckedUsers.length - 1,
+        )
+        if (notCheckedUsers) {
+          console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
+          Messenger.send(`三天都未打卡： ${notCheckedUsers}`)
+        }
+
+        toDeleteIds.length && event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
+      }
+    } catch (error) {
+      console.error('🏹[Event]: 检测三天内未打卡成员发生错误', error)
     }
   })
 
@@ -180,6 +219,24 @@ async function start() {
     }
   })
 
+  event.on(EventTypes.DB_REMOVE_USER, async (toDeleteIds: string[]) => {
+    console.log(`📦[DB]: 开始移除群成员数据: ${toDeleteIds}`)
+    const pList: Promise<User>[] = []
+    for (const wechat of toDeleteIds) {
+      let toSet = await connection.getRepository(User).findOne({ wechat })
+      if (toSet) {
+        pList.push(connection.getRepository(User).softRemove(toSet))
+      }
+    }
+    Promise.all(pList)
+      .then(() => {
+        console.log(`📦[DB]: 移除群成员数据成功 - ${toDeleteIds}`)
+      })
+      .catch((err) => {
+        console.error('📦[DB]: 移除群成员数据数据失败', toDeleteIds, err)
+      })
+  })
+
   initBot().then(async (bot) => {
     checkTodayCheckInSchedule()
     robot = bot
@@ -187,79 +244,38 @@ async function start() {
     try {
       const room = await bot.Room.find(targetRoomName)
       if (room) {
-        room
-          .on('join', (inviteeList, inviter) => {
-            let nameList = ''
-            let wechatIdList = ''
-            inviteeList.forEach((user) => {
-              nameList += `${user.name()},`
-              wechatIdList += `${user.id},`
-            })
-            nameList = nameList.substring(0, nameList.length - 1)
-            wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
-
-            room.say('欢迎新同学加入[加油]')
-            console.log(
-              `🌟[Notice]: ${inviter} 邀请了${inviteeList.length}位新成员: ${nameList}`,
-            )
-            console.log(`📦[DB]: 开始写入新用户信息: ${nameList}`)
-
-            const pList: Promise<User>[] = []
-            inviteeList.forEach((newUser) => {
-              const user = new User()
-              user.enterRoomDate = new Date()
-              user.wechat = newUser.id
-              user.wechatName = newUser.name()
-              pList.push(connection.getRepository(User).save(user))
-            })
-            Promise.all(pList)
-              .then(() => {
-                console.log(`📦[DB]: 写入新用户数据成功 - ${wechatIdList}`)
-              })
-              .catch((err) => {
-                console.error('📦[DB]: 写入新用户数据失败', wechatIdList, err)
-              })
+        room.on('join', async (inviteeList, inviter) => {
+          let nameList = ''
+          let wechatIdList = ''
+          inviteeList.forEach((user) => {
+            nameList += `${user.name()},`
+            wechatIdList += `${user.id},`
           })
-          .on('leave', async (leaverList, remover) => {
-            let nameList = ''
-            let wechatIdList = ''
-            leaverList.forEach((user) => {
-              nameList += `${user.name()},`
-              wechatIdList += `${user.id},`
-            })
-            nameList = nameList.substring(0, nameList.length - 1)
-            wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
+          nameList = nameList.substring(0, nameList.length - 1)
+          wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
 
-            console.log(
-              `🌟[Notice]: ${remover} 移除了${leaverList.length}位成员: ${nameList}`,
-            )
-            console.log(`📦[DB]: 开始写入移除成员数据: ${nameList}`)
+          await room.say('欢迎新同学加入[加油]')
+          console.log(
+            `🌟[Notice]: ${inviter} 邀请了${inviteeList.length}位新成员: ${nameList}`,
+          )
+          console.log(`📦[DB]: 开始写入新用户信息: ${nameList}`)
 
-            const pList: Promise<User>[] = []
-            for (const roomUser of leaverList) {
-              let toSet = await connection
-                .getRepository(User)
-                .findOne({ wechat: roomUser.id })
-              if (toSet) {
-                pList.push(connection.getRepository(User).softRemove(toSet))
-              }
-            }
-
-            Promise.all(pList)
-              .then(() => {
-                console.log(
-                  `📦[DB]: 写入移出群聊数据成功 - ${leaverList}`,
-                  wechatIdList,
-                )
-              })
-              .catch((err) => {
-                console.error(
-                  '📦[DB]: 写入用户移出群聊数据失败',
-                  wechatIdList,
-                  err,
-                )
-              })
+          const pList: Promise<User>[] = []
+          inviteeList.forEach((newUser) => {
+            const user = new User()
+            user.enterRoomDate = new Date()
+            user.wechat = newUser.id
+            user.wechatName = newUser.name()
+            pList.push(connection.getRepository(User).save(user))
           })
+          Promise.all(pList)
+            .then(() => {
+              console.log(`📦[DB]: 写入新用户数据成功 - ${wechatIdList}`)
+            })
+            .catch((err) => {
+              console.error('📦[DB]: 写入新用户数据失败', wechatIdList, err)
+            })
+        })
       }
     } catch (error) {
       console.error('🏹[Event]: find room error in initBot().then()', error)

@@ -26,7 +26,7 @@ export const initBot = (): Promise<Wechaty> =>
         const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
           qrcode,
         )}`
-        console.log(`Scan QR Code to login: ${status}\n${qrcodeUrl}`)
+        console.log(`🌟[Notice]: 登录二维码信息: ${status}\n${qrcodeUrl}`)
         if (status === ScanStatus.Waiting) {
           Messenger.send('请扫描二维码登录: ', qrcodeUrl)
           QrcodeTerminal.generate(qrcode, {
@@ -35,7 +35,7 @@ export const initBot = (): Promise<Wechaty> =>
         }
       })
       .on('login', (user) => {
-        console.log(`User ${user} logined`)
+        console.log(`🌟[Notice]: ${user} 登录成功`)
         resolve(bot)
       })
       .on('error', onError)

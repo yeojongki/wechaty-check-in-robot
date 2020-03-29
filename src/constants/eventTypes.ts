@@ -27,5 +27,10 @@ export enum EventTypes {
   /**
    * 首次进入目标房间
    */
-  FIRST_IN_TARGET_ROOM = 'FIRST_IN_TARGET_ROOM'
+  FIRST_IN_TARGET_ROOM = 'FIRST_IN_TARGET_ROOM',
+
+  /**
+   * 移除数据库中的成员
+   */
+  DB_REMOVE_USER = 'DB_REMOVE_USER',
 }
