@@ -8,6 +8,7 @@ import { User } from './entities'
 import { Wechaty, Room } from 'wechaty'
 import shared from './shared/utils'
 import Messenger from './shared/messenger'
+import checkTodayCheckInSchedule from './schedule'
 
 const targetRoomName = Config.getInstance().ROOM_NAME
 let isInitUserDataIng = false
@@ -173,11 +174,15 @@ async function start() {
       }
     } catch (error) {
       isInitUserDataIng = false
-      console.error('🏹[Event]: 初始化用户信息失败 in FIRST_IN_TARGET_ROOM', error)
+      console.error(
+        '🏹[Event]: 初始化用户信息失败 in FIRST_IN_TARGET_ROOM',
+        error,
+      )
     }
   })
 
   initBot().then(async (bot) => {
+    checkTodayCheckInSchedule()
     robot = bot
 
     try {
