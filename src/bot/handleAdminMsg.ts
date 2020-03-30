@@ -22,14 +22,13 @@ async function handleAdminMsg(msg: Message) {
   if (msgText === '1') {
     console.log('🌟[Notice]: 开始查看今天未签到用户')
     const tomorrow = utils.getTomorrowZero(new Date())
-    const notCheckedMap:
-      | Record<string, boolean>
-      | undefined = await getNotCheckInUsers(tomorrow)
+    const { notCheckedMap, names } = await getNotCheckInUsers(tomorrow)
     if (notCheckedMap) {
       const length = Object.keys(notCheckedMap).length
-      const ids = Object.keys(notCheckedMap).join('，')
       from.say(
-        `截止至${tomorrow.toLocaleString()}，还有${length}位同学未打卡，${ids}`,
+        `截止至${tomorrow.toLocaleString()}，还有${length}位同学未打卡，${names.join(
+          '，',
+        )}`,
       )
     } else {
       from.say(`所有人都完成了打卡`)

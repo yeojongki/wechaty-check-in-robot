@@ -12,6 +12,7 @@ export default async function getNotCheckInUsers(
     const connection = await connect()
     const users = await connection.getRepository(User).find()
     const notCheckedMap: Record<string, boolean> = {}
+    const names: string[] = []
 
     for (const user of users) {
       // 排除白名单和当天请假的
@@ -23,12 +24,20 @@ export default async function getNotCheckInUsers(
           (!user.checkedIn && now - +user.enterRoomDate >= dayLen) ||
           (user.checkedIn && now - +user.checkedIn >= dayLen)
         ) {
+          names.push(user.wechatName)
           notCheckedMap[user.wechat] = true
         }
       }
     }
-    return notCheckedMap
+    return {
+      notCheckedMap,
+      names,
+    }
   } catch (error) {
     console.error(`🌟[Notice]: 查找未签到用户错误`, error)
+    return {
+      notCheckedMap: {},
+      names: [],
+    }
   }
 }

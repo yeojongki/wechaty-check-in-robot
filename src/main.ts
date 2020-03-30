@@ -58,9 +58,7 @@ async function start() {
   event.on(EventTypes.CHECK_TODAY_USER_CHECK_IN, async () => {
     console.log('🌟[Notice]: 开始检测今天用户签到记录')
 
-    const notCheckedMap:
-      | Record<string, boolean>
-      | undefined = await getNotCheckInUsers()
+    const { notCheckedMap } = await getNotCheckInUsers()
     event.emit(EventTypes.DO_BOT_NOTICE, notCheckedMap)
   })
 
