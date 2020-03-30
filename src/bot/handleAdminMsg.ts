@@ -1,8 +1,8 @@
 import { connect } from '../database'
-import { User } from '@/entities'
+import { User } from '../entities'
 import { Message } from 'wechaty'
-import getNotCheckInUsers from '@/shared/getNotCheckInUsers'
-import utils from '@/shared/utils'
+import getNotCheckInUsers from '../shared/getNotCheckInUsers'
+import utils from '../shared/utils'
 
 async function checkIsAdmin(wechat: string) {
   const connection = await connect()

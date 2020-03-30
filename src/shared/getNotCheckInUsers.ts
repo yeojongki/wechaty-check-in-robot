@@ -1,6 +1,6 @@
-import { User } from '@/entities'
+import { User } from '../entities'
 import { connect } from '../database'
-import { ONE_DAY } from '@/constants/time'
+import { ONE_DAY } from '../constants/time'
 
 export default async function getNotCheckInUsers(
   start = new Date(),
