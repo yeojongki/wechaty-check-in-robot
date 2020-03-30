@@ -27,7 +27,7 @@ export async function onMessage(msg: Message) {
     return
   }
 
-  if (adminHandler.checkIsAdmin(from.id)) {
+  if (await adminHandler.checkIsAdmin(from.id)) {
     adminHandler.handleAdminMsg(msg)
     return
   }
