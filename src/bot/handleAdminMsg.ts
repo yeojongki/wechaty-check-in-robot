@@ -17,7 +17,7 @@ async function handleAdminMsg(msg: Message) {
   const msgText = msg.text()
   const from = msg.from()!
   if (msgText === '菜单') {
-    from.say(`请发送对应数字 1.查看当前未签到用户`)
+    from.say(`请发送对应数字 \n1.查看当前未签到用户`)
   }
   if (msgText === '1') {
     console.log('🌟[Notice]: 开始查看今天未签到用户')
