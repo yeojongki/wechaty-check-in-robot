@@ -33,4 +33,9 @@ export enum EventTypes {
    * 移除数据库中的成员
    */
   DB_REMOVE_USER = 'DB_REMOVE_USER',
+  
+  /**
+   * 历史上的今天
+   */
+  GET_TODAY_HISTORY = 'GET_TODAY_HISTORY',
 }

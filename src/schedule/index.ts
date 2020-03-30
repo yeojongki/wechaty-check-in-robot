@@ -17,4 +17,8 @@ export default function checkTodayCheckInSchedule() {
     event.emit(EventTypes.CHECK_TODAY_USER_CHECK_IN)
     event.emit(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN)
   })
+
+  schedule.scheduleJob('0 0 8 * * *', () => {
+    event.emit(EventTypes.GET_TODAY_HISTORY)
+  })
 }
