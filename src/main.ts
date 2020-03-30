@@ -19,39 +19,37 @@ async function start() {
   let robot: Wechaty | null = null
   const connection = await connect()
 
-  event.on(EventTypes.CHECK_IN, async ({ wechat, time }) => {
+  event.on(EventTypes.CHECK_IN, async ({ wechat, time, name }) => {
     console.log('🌟[Notice]: 开始打卡')
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
-      if (toUpdate) {
-        toUpdate.checkedIn = time
-      } else {
+      if (!toUpdate) {
         toUpdate = new User()
         toUpdate.wechat = wechat
-        toUpdate.checkedIn = time
       }
+      toUpdate.checkedIn = time
+      toUpdate.wechatName = name
       await connection.getRepository(User).save(toUpdate)
-      console.log(`📦[DB]: 打卡数据写入成功 - 用户「${wechat}」`)
+      console.log(`📦[DB]: 打卡数据写入成功`)
     } catch (error) {
-      console.log(`📦[DB]: 打卡数据写入失败 - 用户「${wechat}」`, error)
+      console.log(`📦[DB]: 打卡数据写入失败`, error)
     }
   })
 
-  event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, time }) => {
+  event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, time, name }) => {
     console.log('🌟[Notice]: 开始请假')
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
-      if (toUpdate) {
-        toUpdate.leaveAt = time
-      } else {
+      if (!toUpdate) {
         toUpdate = new User()
         toUpdate.wechat = wechat
-        toUpdate.leaveAt = time
       }
+      toUpdate.leaveAt = time
+      toUpdate.wechatName = name
       await connection.getRepository(User).save(toUpdate)
-      console.log(`📦[DB]: 请假数据写入成功 - 用户「${wechat}」`)
+      console.log(`📦[DB]: 请假数据写入成功`)
     } catch (error) {
-      console.log(`📦[DB]: 请假数据写入失败 - 用户「${wechat}」`, error)
+      console.log(`📦[DB]: 请假数据写入失败`, error)
     }
   })
 
@@ -76,9 +74,9 @@ async function start() {
 
         for (const user of allUsers) {
           if (wechatIdMap[user.id]) {
-            const isDeleted = await room.has(user)
-            isDeleted && toDeleteIds.push(user.id)
-            if (!isDeleted) {
+            const isInRoom = await room.has(user)
+            !isInRoom && toDeleteIds.push(user.id)
+            if (isInRoom) {
               count++
               usersToAt += `@${user.name()} `
             }
@@ -95,6 +93,7 @@ async function start() {
           )
         }
 
+        console.log(`🌟[Notice]: 准备移除昨日未打卡成员`)
         toDeleteIds.length && event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
       }
     } catch (error) {
@@ -145,6 +144,7 @@ async function start() {
           Messenger.send(`三天都未打卡： ${notCheckedUsers}`)
         }
 
+        console.log(`🌟[Notice]: 准备移除三天都未打卡成员`)
         toDeleteIds.length && event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
       }
     } catch (error) {
