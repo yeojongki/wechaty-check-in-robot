@@ -4,6 +4,7 @@ import Config from '../config'
 import event from '../shared/events'
 import { EventTypes } from '../constants/eventTypes'
 import shared from '../shared/utils'
+import adminHandler from './handleAdminMsg'
 
 let userDataInited: boolean = shared.checkUserDataIsInit()
 const checkInMap = new Map<string, Date>()
@@ -21,7 +22,13 @@ export async function onMessage(msg: Message) {
 
   const room = msg.room()
   const from = msg.from()
+
   if (!from) {
+    return
+  }
+
+  if (adminHandler.checkIsAdmin(from.id)) {
+    adminHandler.handleAdminMsg(msg)
     return
   }
 
@@ -47,11 +54,11 @@ export async function onMessage(msg: Message) {
         }
         checkInMap.set(wechat, time)
 
+        console.log(`📌[Check In]: 检测到打卡 - 用户「${wechat}」`)
         event.emit(EventTypes.CHECK_IN, {
           wechat,
           time,
         })
-        console.log(`📌[Check In]: 检测到打卡 - 用户「${wechat}」`)
       }
 
       // 判定请假
@@ -59,12 +66,12 @@ export async function onMessage(msg: Message) {
         const wechat = from.id
         const username = from.name()
         const time = new Date()
+        console.log(`✂️[Ask For Leave]: 检测到请假 - 用户「${wechat}」`)
         event.emit(EventTypes.ASK_FOR_LEAVE, {
           wechat,
           time,
         })
         await room.say(`@${username} 请假成功✅`)
-        console.log(`✂️[Ask For Leave]: 检测到请假 - 用户「${wechat}」`)
       }
     }
   } catch (error) {

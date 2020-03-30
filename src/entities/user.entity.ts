@@ -14,6 +14,13 @@ export class User extends Base {
   isWhiteList!: number
 
   @Column({
+    type: 'tinyint',
+    default: 0,
+    comment: '是否为管理员 0为否 1为是',
+  })
+  isAdmin!: number
+
+  @Column({
     unique: true,
     comment: '微信号',
   })

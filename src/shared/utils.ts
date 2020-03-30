@@ -20,13 +20,26 @@ function setUserDataIsInit(): void {
     JSON.stringify({ init: true }),
     (err) => {
       if (err) {
-        console.error('setUserDataIsInit fail', err)
+        console.error('🌟[Notice]: 写入初始化文件失败', err)
       }
     },
   )
 }
 
+/**
+ * 获取当前时间的0点
+ * 如 2020/03/30 22:23:23 -> 2020/03/21 00:00:00
+ */
+function getTomorrowZero(date: Date): Date {
+  const day = date.getDate()
+  const year = date.getFullYear()
+  const month = date.getMonth()
+
+  return new Date(+new Date(`${year}/${month}/${day}`) + 86400000)
+}
+
 export default {
   checkUserDataIsInit,
   setUserDataIsInit,
+  getTomorrowZero,
 }

@@ -6,9 +6,11 @@ import event from './shared/events'
 import { EventTypes } from './constants/eventTypes'
 import { User } from './entities'
 import { Wechaty, Room } from 'wechaty'
-import shared from './shared/utils'
+import utils from './shared/utils'
 import Messenger from './shared/messenger'
 import checkTodayCheckInSchedule from './schedule'
+import getNotCheckInUsers from './shared/getNotCheckInUsers'
+import { THREE_DAY } from './constants/time'
 
 const targetRoomName = Config.getInstance().ROOM_NAME
 let isInitUserDataIng = false
@@ -55,28 +57,10 @@ async function start() {
 
   event.on(EventTypes.CHECK_TODAY_USER_CHECK_IN, async () => {
     console.log('🌟[Notice]: 开始检测今天用户签到记录')
-    const now = +new Date()
-    const users = await connection.getRepository(User).find()
-    const notCheckedMap: Record<string, boolean> = {}
-    const ONE_DAY = 86400 * 1000
 
-    for (const user of users) {
-      // 排除白名单和当天请假的
-      if (
-        user.isWhiteList ||
-        (user.leaveAt && now - +user.leaveAt <= ONE_DAY)
-      ) {
-        continue
-      } else {
-        // 没有签到记录或者今天没有签到
-        if (
-          (!user.checkedIn && now - +user.enterRoomDate >= ONE_DAY) ||
-          (user.checkedIn && now - +user.checkedIn >= ONE_DAY)
-        ) {
-          notCheckedMap[user.wechat] = true
-        }
-      }
-    }
+    const notCheckedMap:
+      | Record<string, boolean>
+      | undefined = await getNotCheckInUsers()
     event.emit(EventTypes.DO_BOT_NOTICE, notCheckedMap)
   })
 
@@ -116,7 +100,7 @@ async function start() {
         toDeleteIds.length && event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
       }
     } catch (error) {
-      console.error('🏹[Event]: error in DO_BOT_NOTICE', error)
+      console.error('🏹[Event]: 发布昨天成员未打卡情况发生错误', error)
     }
   })
 
@@ -137,7 +121,6 @@ async function start() {
         const toDeleteIds: string[] = []
 
         let notCheckedUsers: string = ''
-        const THREE_DAY = 86400 * 3 * 1000
 
         for (const user of users) {
           if (!user.isWhiteList) {
@@ -201,7 +184,7 @@ async function start() {
         Promise.all(pList)
           .then(() => {
             console.log(`📦[DB]: 写入初始化${pList.length}位用户信息成功`)
-            shared.setUserDataIsInit()
+            utils.setUserDataIsInit()
           })
           .catch((err) => {
             console.error('📦[DB]: 写入初始化用户信息失败', err)
@@ -254,7 +237,9 @@ async function start() {
           nameList = nameList.substring(0, nameList.length - 1)
           wechatIdList = wechatIdList.substring(0, wechatIdList.length - 1)
 
-          await room.say('欢迎新同学加入[加油]')
+          await room.say(
+            '欢迎新同学加入[加油]，打卡规则请看群公告，有不清楚的可以在群里问~',
+          )
           console.log(
             `🌟[Notice]: ${inviter} 邀请了${inviteeList.length}位新成员: ${nameList}`,
           )
@@ -278,7 +263,7 @@ async function start() {
         })
       }
     } catch (error) {
-      console.error('🏹[Event]: find room error in initBot().then()', error)
+      console.error('🏹[Event]: 初始化机器人后发生错误', error)
     }
   })
 }
