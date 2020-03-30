@@ -56,8 +56,8 @@ async function start() {
   event.on(EventTypes.CHECK_TODAY_USER_CHECK_IN, async () => {
     console.log('🌟[Notice]: 开始检测今天用户签到记录')
 
-    const { notCheckedMap } = await getNotCheckInUsers()
-    event.emit(EventTypes.DO_BOT_NOTICE, notCheckedMap)
+    const { notCheckMap } = await getNotCheckInUsers()
+    event.emit(EventTypes.DO_BOT_NOTICE, notCheckMap)
   })
 
   event.on(EventTypes.DO_BOT_NOTICE, async (wechatIdMap) => {

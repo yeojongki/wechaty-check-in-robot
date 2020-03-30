@@ -20,14 +20,14 @@ async function handleAdminMsg(msg: Message) {
     from.say(`请发送对应数字 \n1.查看当前未签到用户`)
   }
   if (msgText === '1') {
-    console.log('🌟[Notice]: 开始查看今天未签到用户')
+    console.log(`🌟[Notice]: 查看今天未签到用户 - by ${from.name()}`)
     const tomorrow = utils.getTomorrowZero(new Date())
-    const { notCheckedMap, names } = await getNotCheckInUsers(tomorrow)
-    if (notCheckedMap) {
-      const length = Object.keys(notCheckedMap).length
+    const { notCheckMap, names } = await getNotCheckInUsers(tomorrow)
+    if (names.length) {
+      const length = Object.keys(notCheckMap).length
       from.say(
-        `截止至${tomorrow.toLocaleString()}，还有${length}位同学未打卡，${names.join(
-          '，',
+        `截止至${tomorrow.toLocaleString()}，还有${length}位同学未打卡，@${names.join(
+          ' @',
         )}`,
       )
     } else {
