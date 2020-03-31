@@ -42,6 +42,25 @@ export async function onMessage(msg: Message) {
 
       const msgText = msg.text()
 
+      // 判定请假
+      if (msgText.includes('请假')) {
+        const wechat = from.id
+        const name = from.name()
+        const time = new Date()
+        console.log(
+          `✂️[Ask For Leave]: 检测到请假 - 用户「${wechat}」-「${name}」`,
+        )
+        event.emit(EventTypes.ASK_FOR_LEAVE, {
+          name,
+          wechat,
+          time,
+        })
+        await room.say(`@${name} 请假成功✅`)
+
+        // 如果请假了就不继续判断后续打卡情况
+        return
+      }
+
       // 判定打卡成功
       if (msgText.includes('打卡') || msg.type() === MessageType.Image) {
         const wechat = from.id
@@ -61,22 +80,6 @@ export async function onMessage(msg: Message) {
           wechat,
           time,
         })
-      }
-
-      // 判定请假
-      if (msgText.includes('请假')) {
-        const wechat = from.id
-        const name = from.name()
-        const time = new Date()
-        console.log(
-          `✂️[Ask For Leave]: 检测到请假 - 用户「${wechat}」-「${name}」`,
-        )
-        event.emit(EventTypes.ASK_FOR_LEAVE, {
-          name,
-          wechat,
-          time,
-        })
-        await room.say(`@${name} 请假成功✅`)
       }
     }
   } catch (error) {

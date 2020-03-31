@@ -202,7 +202,7 @@ async function start() {
   })
 
   event.on(EventTypes.DB_REMOVE_USER, async (toDeleteIds: string[]) => {
-    console.log(`📦[DB]: 开始移除群成员数据: ${toDeleteIds}`)
+    console.log(`📦[DB]: 开始标记用户为已删除: ${toDeleteIds}`)
     const pList: Promise<User>[] = []
     for (const wechat of toDeleteIds) {
       let toSet = await connection.getRepository(User).findOne({ wechat })
@@ -212,10 +212,10 @@ async function start() {
     }
     Promise.all(pList)
       .then(() => {
-        console.log(`📦[DB]: 移除群成员数据成功 - ${toDeleteIds}`)
+        console.log(`📦[DB]: 标记用户为已删除成功 - ${toDeleteIds}`)
       })
       .catch((err) => {
-        console.error('📦[DB]: 移除群成员数据数据失败', toDeleteIds, err)
+        console.error('📦[DB]: 标记用户为已删除数据失败', toDeleteIds, err)
       })
   })
 
