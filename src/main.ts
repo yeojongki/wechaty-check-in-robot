@@ -275,20 +275,25 @@ async function start() {
           .findOne({ wechat: user.id })
         const newName = user.name()
         if (dbUser && dbUser.wechatName !== newName) {
-          toChange += `用户名称从「${dbUser.wechatName}」变成了「${newName}」\n`
+          toChange += `用户名从「${dbUser.wechatName}」变成「${newName}」\n`
           dbUser.wechatName = newName
           pList.push(connection.getRepository(User).save(dbUser))
         }
       }
-      pList.length &&
+
+      if (pList.length) {
         Promise.all(pList)
           .then(() => {
-            toUser.say(toChange)
             console.log(`📦[DB]: 所有用户信息更新成功 - ${toChange}`)
+            toUser.say(toChange)
           })
           .catch((err) => {
             console.error('📦[DB]: 所有用户信息更新失败', toChange, err)
           })
+      } else {
+        console.log(`🌟[Notice]: 暂无更新~`)
+        toUser.say('暂无更新~')
+      }
     }
   })
 
