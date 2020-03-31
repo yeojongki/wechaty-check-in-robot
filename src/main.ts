@@ -318,7 +318,7 @@ async function start() {
             '欢迎新同学加入[加油]，打卡规则请看群公告，有不清楚的可以在群里问~',
           )
           console.log(
-            `🌟[Notice]: ${inviter} 邀请了${inviteeList.length}位新成员: ${nameList}`,
+            `🌟[Notice]: ${inviter} 邀请了${inviteeList.length}位新成员: ${wechatIdList}`,
           )
           console.log(`📦[DB]: 开始写入新用户信息: ${nameList}`)
 
@@ -337,6 +337,21 @@ async function start() {
             .catch((err) => {
               console.error('📦[DB]: 写入新用户数据失败', wechatIdList, err)
             })
+        })
+        room.on('leave', (leaverList, remover) => {
+          let nameList = ''
+          let wechatIdList = ''
+          leaverList.forEach((user) => {
+            nameList += `${user.name()},`
+            wechatIdList += `${user.id},`
+          })
+          nameList = nameList.substring(0, nameList.length - 1)
+          console.log(
+            `🌟[Notice]: ${nameList}离开了群聊${
+              remover ? ` by - ${remover.name()}` : ''
+            }`,
+          )
+          Messenger.send('离开群聊名单：', nameList)
         })
       }
     } catch (error) {
