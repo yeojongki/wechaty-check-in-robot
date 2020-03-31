@@ -5,7 +5,7 @@ import { initBot } from './bot/wechaty'
 import event from './shared/events'
 import { EventTypes } from './constants/eventTypes'
 import { User } from './entities'
-import { Wechaty, Room } from 'wechaty'
+import { Wechaty, Room, Contact } from 'wechaty'
 import utils from './shared/utils'
 import Messenger from './shared/messenger'
 import checkTodayCheckInSchedule from './schedule'
@@ -127,7 +127,7 @@ async function start() {
               (user.checkedIn && now - +user.checkedIn > THREE_DAY) ||
               (!user.checkedIn && now - +user.enterRoomDate > THREE_DAY)
             ) {
-              notCheckedUsers += `${user.wechat}、`
+              notCheckedUsers += `${user.wechatName}、`
               if (room) {
                 const isDeleted = !roomUsersMap.get(user.wechat)
                 isDeleted && toDeleteIds.push(user.wechat)
@@ -179,7 +179,7 @@ async function start() {
         pList.push(connection.getRepository(User).save(toUpdate))
       }
 
-      if (pList.length) {
+      pList.length &&
         Promise.all(pList)
           .then(() => {
             console.log(`📦[DB]: 写入初始化${pList.length}位用户信息成功`)
@@ -191,7 +191,6 @@ async function start() {
           .finally(() => {
             isInitUserDataIng = false
           })
-      }
     } catch (error) {
       isInitUserDataIng = false
       console.error(
@@ -210,13 +209,14 @@ async function start() {
         pList.push(connection.getRepository(User).softRemove(toSet))
       }
     }
-    Promise.all(pList)
-      .then(() => {
-        console.log(`📦[DB]: 标记用户为已删除成功 - ${toDeleteIds}`)
-      })
-      .catch((err) => {
-        console.error('📦[DB]: 标记用户为已删除数据失败', toDeleteIds, err)
-      })
+    pList.length &&
+      Promise.all(pList)
+        .then(() => {
+          console.log(`📦[DB]: 标记用户为已删除成功 - ${toDeleteIds}`)
+        })
+        .catch((err) => {
+          console.error('📦[DB]: 标记用户为已删除数据失败', toDeleteIds, err)
+        })
   })
 
   event.on(EventTypes.GET_TODAY_HISTORY, async () => {
@@ -259,6 +259,37 @@ async function start() {
       .catch((err) => {
         console.error('🏹[Event]: 获取历史上今天发生错误', err)
       })
+  })
+
+  event.on(EventTypes.UPDATE_ROOM_USER, async (toUser: Contact) => {
+    const wechaty = robot ? robot : await initBot()
+    const room = await wechaty.Room.find(targetRoomName)
+    if (room) {
+      await room.sync()
+      const allUsers = await room.memberAll()
+      const pList: Promise<User>[] = []
+      let toChange: string = ''
+      for (const user of allUsers) {
+        let dbUser = await connection
+          .getRepository(User)
+          .findOne({ wechat: user.id })
+        const newName = user.name()
+        if (dbUser && dbUser.wechatName !== newName) {
+          toChange += `用户名称从「${dbUser.wechatName}」变成了「${newName}」\n`
+          dbUser.wechatName = newName
+          pList.push(connection.getRepository(User).save(dbUser))
+        }
+      }
+      pList.length &&
+        Promise.all(pList)
+          .then(() => {
+            toUser.say(toChange)
+            console.log(`📦[DB]: 所有用户信息更新成功 - ${toChange}`)
+          })
+          .catch((err) => {
+            console.error('📦[DB]: 所有用户信息更新失败', toChange, err)
+          })
+    }
   })
 
   initBot().then(async (bot) => {

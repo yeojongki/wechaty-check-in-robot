@@ -33,6 +33,11 @@ export enum EventTypes {
    * 移除数据库中的成员
    */
   DB_REMOVE_USER = 'DB_REMOVE_USER',
+
+  /**
+   * 更新群组中用户信息
+   */
+  UPDATE_ROOM_USER = 'UPDATE_ROOM_USER',
   
   /**
    * 历史上的今天
