@@ -4,7 +4,7 @@ import { Message } from 'wechaty'
 import getNotCheckInUsers from '../shared/getNotCheckInUsers'
 import utils from '../shared/utils'
 import event from '../shared/events'
-import { EventTypes } from '@/constants/eventTypes'
+import { EventTypes } from '../constants/eventTypes'
 
 async function checkIsAdmin(wechat: string) {
   const connection = await connect()
