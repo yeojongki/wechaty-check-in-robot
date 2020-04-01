@@ -298,24 +298,25 @@ async function start() {
       }
 
       const dbUsers = await connection.getRepository(User).find()
-      const toDeleteUser: User[] = dbUsers.filter((u) =>
-        currentUserMap.has(u.wechat),
+      const toDeleteUsers: User[] = dbUsers.filter(
+        (u) => !currentUserMap.has(u.wechat),
       )
 
-      if (toDeleteUser.length) {
+      if (toDeleteUsers.length) {
         console.log(
-          `🌟[Notice]: 以下用户已不在群里：${toDeleteUser.map(
-            (u) => u.wechatName,
-          )}`,
+          `🌟[Notice]: 以下用户已不在群里：${toDeleteUsers
+            .map((u) => `@${u.wechatName}`)
+            .join(' ')}`,
         )
-        toChange += `\n以下用户已不在群里：\n`
-        toDeleteUser.forEach((u) => {
-          toChange += `${u.wechatName}\n`
+        toChange += `${toChange.length ? '\n' : ''}以下用户已不在群里：\n`
+        toDeleteUsers.forEach((u) => {
+          toChange += `@${u.wechatName}，`
           pList.push(connection.getRepository(User).softRemove(u))
         })
       }
 
       if (pList.length) {
+        console.log(`📦[DB]: 开始更新数据库`)
         Promise.all(pList)
           .then(() => {
             console.log(`📦[DB]: 所有用户信息更新成功 - ${toChange}`)
