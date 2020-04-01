@@ -223,12 +223,14 @@ async function start() {
     console.log(`🌟[Notice]: 开始获取历史上的今天`)
     const now = new Date()
     const month = now.getMonth() + 1
+    const date = now.getDate()
     const monthStr = month < 10 ? `0${month}` : month
+    const dateStr = date < 10 ? `0${date}` : date
     const url = `https://baike.baidu.com/cms/home/eventsOnHistory/${monthStr}.json?_=${+now}`
 
     Axios.get(url)
       .then(async (res) => {
-        const todayKey = `${monthStr}${now.getDate()}`
+        const todayKey = `${monthStr}${dateStr}`
         const todayAll: {
           recommend: boolean
           title: string
