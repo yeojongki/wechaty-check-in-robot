@@ -274,10 +274,18 @@ async function start() {
     const room = await wechaty.Room.find(targetRoomName)
     if (room) {
       await room.sync()
-      const allUsers = await room.memberAll()
+      const roomUsers = await room.memberAll()
+
+      const currentUserMap = new Map<string, boolean>()
+      roomUsers.forEach((u) => {
+        currentUserMap.set(u.id, true)
+      })
+
       const pList: Promise<User>[] = []
       let toChange: string = ''
-      for (const user of allUsers) {
+      for (const user of roomUsers) {
+        // { id: boolean }
+
         let dbUser = await connection
           .getRepository(User)
           .findOne({ wechat: user.id })
@@ -287,6 +295,24 @@ async function start() {
           dbUser.wechatName = newName
           pList.push(connection.getRepository(User).save(dbUser))
         }
+      }
+
+      const dbUsers = await connection.getRepository(User).find()
+      const toDeleteUser: User[] = dbUsers.filter((u) =>
+        currentUserMap.has(u.wechat),
+      )
+
+      if (toDeleteUser.length) {
+        console.log(
+          `🌟[Notice]: 以下用户已不在群里：${toDeleteUser.map(
+            (u) => u.wechatName,
+          )}`,
+        )
+        toChange += `\n以下用户已不在群里：\n`
+        toDeleteUser.forEach((u) => {
+          toChange += `${u.wechatName}\n`
+          pList.push(connection.getRepository(User).softRemove(u))
+        })
       }
 
       if (pList.length) {
