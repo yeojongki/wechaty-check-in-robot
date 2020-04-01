@@ -233,11 +233,13 @@ async function start() {
         const todayKey = `${monthStr}${dateStr}`
         const todayAll: {
           recommend: boolean
+          cover: boolean
           title: string
+          festival?: string
           year: string
           desc: string
         }[] = res.data[monthStr][todayKey]
-        const recommend = todayAll.filter((i) => i.recommend)[0]
+        const hasCover = todayAll.filter((i) => i.cover)[0]
 
         function extracText(str: string, len = str.length - 1) {
           str = str.replace('</a>', '')
@@ -247,14 +249,18 @@ async function start() {
           result += str.substring(end, len)
           return result.replace('">', '')
         }
-        const title = extracText(recommend.title)
-        const desc = extracText(recommend.desc, recommend.desc.length)
+        const title = extracText(hasCover.title)
+        const desc = extracText(hasCover.desc, hasCover.desc.length)
 
         const wechaty = robot ? robot : await initBot()
         const room = await wechaty.Room.find(targetRoomName)
         if (room) {
           room.say(
-            `👀一起来看看${recommend.year}年历史上的今天发生了什么吧：\n${title}${desc}`,
+            `👀${
+              hasCover.festival ? `今天是${hasCover.festival}，` : ''
+            }一起来看看${
+              hasCover.year
+            }年历史上的今天发生了什么吧：\n${title}${desc}`,
           )
         }
       })
