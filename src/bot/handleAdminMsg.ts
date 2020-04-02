@@ -19,9 +19,13 @@ async function checkIsAdmin(wechat: string) {
 async function handleAdminMsg(msg: Message) {
   const msgText = msg.text()
   const from = msg.from()!
-  if (msgText === '菜单') {
+  if (msgText === '菜单' || msgText === '/start' || msgText === '/help') {
     from.say(
-      `请发送对应数字 \n1.查看当前未签到用户 \n2.更新群成员信息 \n3.获取历史上的今天`,
+      '请发送对应数字\n' +
+        '1. 查看当前未签到用户\n' +
+        '2. 查看三天都未签到用户\n' +
+        '3. 更新群成员信息\n' +
+        '4. 获取历史上的今天',
     )
   }
 
@@ -42,10 +46,17 @@ async function handleAdminMsg(msg: Message) {
   }
 
   if (msgText === '2') {
-    event.emit(EventTypes.UPDATE_ROOM_USER, from)
+    console.log(`🌟[Notice]: 查看三天都未签到用户 - by ${from.name()}`)
+    event.emit(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN, from)
   }
 
   if (msgText === '3') {
+    console.log(`🌟[Notice]: 更新群组用户信息 - by ${from.name()}`)
+    event.emit(EventTypes.UPDATE_ROOM_USER, from)
+  }
+
+  if (msgText === '4') {
+    console.log(`🌟[Notice]: 获取历史上的今天 - by ${from.name()}`)
     const toSend = await getHistoryToday()
     from.say(toSend)
   }

@@ -102,7 +102,7 @@ async function start() {
     }
   })
 
-  event.on(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN, async () => {
+  event.on(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN, async (from?: Contact) => {
     console.log('🌟[Notice]: 开始检测三天内未打卡成员')
     try {
       const now = +new Date()
@@ -124,29 +124,31 @@ async function start() {
           if (!user.isWhiteList) {
             // 三天没有签到
             if (
-              (user.checkedIn && now - +user.checkedIn > THREE_DAY) ||
-              (!user.checkedIn && now - +user.enterRoomDate > THREE_DAY)
+              (!user.checkedIn && now - +user.enterRoomDate >= THREE_DAY) ||
+              (user.checkedIn && now - +user.checkedIn >= THREE_DAY)
             ) {
-              notCheckedUsers += `${user.wechatName}、`
+              notCheckedUsers += `@${user.wechatName} `
               if (room) {
-                const isDeleted = !roomUsersMap.get(user.wechat)
+                const isDeleted = !roomUsersMap.has(user.wechat)
                 isDeleted && toDeleteIds.push(user.wechat)
               }
             }
           }
         }
 
-        notCheckedUsers = notCheckedUsers.substring(
-          0,
-          notCheckedUsers.length - 1,
-        )
         if (notCheckedUsers) {
+          notCheckedUsers = notCheckedUsers.substring(
+            0,
+            notCheckedUsers.length - 1,
+          )
           console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
           Messenger.send(`三天都未打卡： ${notCheckedUsers}`)
+          console.log(`🌟[Notice]: 准备移除三天都未打卡成员`)
+          event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
+        } else {
+          from && from.say('三天内所有用户都完成的打卡')
+          console.log(`🌟[Notice]: 三天内所有用户都完成的打卡`)
         }
-
-        console.log(`🌟[Notice]: 准备移除三天都未打卡成员`)
-        toDeleteIds.length && event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
       }
     } catch (error) {
       console.error('🏹[Event]: 检测三天内未打卡成员发生错误', error)
@@ -343,7 +345,7 @@ async function start() {
           })
           nameList = nameList.substring(0, nameList.length - 1)
           console.log(
-            `🌟[Notice]: ${nameList}离开了群聊${
+            `🌟[Notice]: ${nameList}离开了群聊 id为${wechatIdList}${
               remover ? ` by - ${remover.name()}` : ''
             }`,
           )
