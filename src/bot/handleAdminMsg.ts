@@ -5,6 +5,7 @@ import getNotCheckInUsers from '../shared/getNotCheckInUsers'
 import utils from '../shared/utils'
 import event from '../shared/events'
 import { EventTypes } from '../constants/eventTypes'
+import getHistoryToday from '../shared/getHistoryToday'
 
 async function checkIsAdmin(wechat: string) {
   const connection = await connect()
@@ -19,7 +20,9 @@ async function handleAdminMsg(msg: Message) {
   const msgText = msg.text()
   const from = msg.from()!
   if (msgText === '菜单') {
-    from.say(`请发送对应数字 \n1.查看当前未签到用户 \n2.更新群成员信息`)
+    from.say(
+      `请发送对应数字 \n1.查看当前未签到用户 \n2.更新群成员信息 \n3.获取历史上的今天`,
+    )
   }
 
   if (msgText === '1') {
@@ -40,6 +43,11 @@ async function handleAdminMsg(msg: Message) {
 
   if (msgText === '2') {
     event.emit(EventTypes.UPDATE_ROOM_USER, from)
+  }
+
+  if (msgText === '3') {
+    const toSend = await getHistoryToday()
+    from.say(toSend)
   }
 }
 

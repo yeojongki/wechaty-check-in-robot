@@ -11,7 +11,7 @@ import Messenger from './shared/messenger'
 import checkTodayCheckInSchedule from './schedule'
 import getNotCheckInUsers from './shared/getNotCheckInUsers'
 import { THREE_DAY } from './constants/time'
-import Axios from 'axios'
+import getHistoryToday from './shared/getHistoryToday'
 
 const targetRoomName = Config.getInstance().ROOM_NAME
 let isInitUserDataIng = false
@@ -221,52 +221,12 @@ async function start() {
 
   event.on(EventTypes.GET_TODAY_HISTORY, async () => {
     console.log(`🌟[Notice]: 开始获取历史上的今天`)
-    const now = new Date()
-    const month = now.getMonth() + 1
-    const date = now.getDate()
-    const monthStr = month < 10 ? `0${month}` : month
-    const dateStr = date < 10 ? `0${date}` : date
-    const url = `https://baike.baidu.com/cms/home/eventsOnHistory/${monthStr}.json?_=${+now}`
-
-    Axios.get(url)
-      .then(async (res) => {
-        const todayKey = `${monthStr}${dateStr}`
-        const todayAll: {
-          recommend: boolean
-          cover: boolean
-          title: string
-          festival?: string
-          year: string
-          desc: string
-        }[] = res.data[monthStr][todayKey]
-        const hasCover = todayAll.filter((i) => i.cover)[0]
-
-        function extracText(str: string, len = str.length - 1) {
-          str = str.replace('</a>', '')
-          const start = str.indexOf('<a')
-          const end = str.indexOf('">')
-          let result = str.substring(0, start)
-          result += str.substring(end, len)
-          return result.replace('">', '')
-        }
-        const title = extracText(hasCover.title)
-        const desc = extracText(hasCover.desc, hasCover.desc.length)
-
-        const wechaty = robot ? robot : await initBot()
-        const room = await wechaty.Room.find(targetRoomName)
-        if (room) {
-          room.say(
-            `👀${
-              hasCover.festival ? `今天是${hasCover.festival}，` : ''
-            }一起来看看${
-              hasCover.year
-            }年历史上的今天发生了什么吧：\n${title}${desc}`,
-          )
-        }
-      })
-      .catch((err) => {
-        console.error('🏹[Event]: 获取历史上今天发生错误', err)
-      })
+    const toSend = await getHistoryToday()
+    const wechaty = robot ? robot : await initBot()
+    const room = await wechaty.Room.find(targetRoomName)
+    if (room) {
+      room.say(toSend)
+    }
   })
 
   event.on(EventTypes.UPDATE_ROOM_USER, async (toUser: Contact) => {
@@ -374,6 +334,7 @@ async function start() {
             })
         })
         room.on('leave', (leaverList, remover) => {
+          console.log(`🌟[Notice]: 检测到有人离开了群聊`)
           let nameList = ''
           let wechatIdList = ''
           leaverList.forEach((user) => {
