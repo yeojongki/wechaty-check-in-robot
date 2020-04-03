@@ -6,7 +6,6 @@ export default async function getNotCheckInUsers(
   start = new Date(),
   dayLen = ONE_DAY,
 ) {
-  console.log('🌟[Notice]: 开始查找未签到的用户')
   const now = +start
   try {
     const connection = await connect()

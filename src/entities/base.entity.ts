@@ -1,4 +1,9 @@
-import { PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm'
+import {
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm'
 
 export class Base {
   @PrimaryGeneratedColumn()
@@ -8,7 +13,7 @@ export class Base {
     name: 'created_at',
     type: 'timestamp',
     precision: 0,
-    default: () => 'CURRENT_TIMESTAMP'
+    default: () => 'CURRENT_TIMESTAMP',
   })
   readonly createdAt!: Date
 
@@ -16,7 +21,7 @@ export class Base {
     name: 'updated_at',
     type: 'timestamp',
     precision: 0,
-    default: () => 'CURRENT_TIMESTAMP'
+    default: () => 'CURRENT_TIMESTAMP',
   })
   readonly updatedAt!: Date
 
@@ -24,7 +29,7 @@ export class Base {
     name: 'deleted_at',
     type: 'timestamp',
     precision: 0,
-    default: () => null
+    default: () => null,
   })
   readonly deletedAt?: Date
 }

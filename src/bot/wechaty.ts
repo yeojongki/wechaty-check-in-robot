@@ -20,7 +20,7 @@ const bot = new Wechaty({
 })
 
 export const initBot = (): Promise<Wechaty> =>
-  new Promise((resolve) => {
+  new Promise(resolve => {
     bot
       .on('scan', (qrcode, status) => {
         const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
@@ -34,7 +34,7 @@ export const initBot = (): Promise<Wechaty> =>
           })
         }
       })
-      .on('login', (user) => {
+      .on('login', user => {
         console.log(`🌟[Notice]: ${user} 登录成功`)
         resolve(bot)
       })

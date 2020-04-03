@@ -7,6 +7,6 @@ export function onError(err: Error) {
     `
     - 时间：${new Date().toLocaleString()}
     - error：${JSON.stringify(err)}
-  `
+  `,
   )
 }

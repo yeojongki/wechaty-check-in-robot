@@ -11,7 +11,7 @@ export default function getHistoryToday(): Promise<string> {
     const url = `https://baike.baidu.com/cms/home/eventsOnHistory/${monthStr}.json?_=${+now}`
 
     Axios.get(url)
-      .then(async (res) => {
+      .then(async res => {
         console.log(`🌟[Notice]: 成功获取历史上的今天`)
         const todayKey = `${monthStr}${dateStr}`
         const todayAll: {
@@ -22,7 +22,7 @@ export default function getHistoryToday(): Promise<string> {
           year: string
           desc: string
         }[] = res.data[monthStr][todayKey]
-        const recommendAll = todayAll.filter((i) => i.recommend)
+        const recommendAll = todayAll.filter(i => i.recommend)
 
         function extracText(str: string, len = str.length - 1) {
           str = str.replace('</a>', '')
@@ -47,7 +47,7 @@ export default function getHistoryToday(): Promise<string> {
         })
         resolve(toSend)
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err)
         console.error('🏹[Event]: 获取历史上今天发生错误', err)
       })

@@ -113,7 +113,7 @@ async function start() {
         const roomUsers = await room.memberAll()
         // { id: boolean }
         const roomUsersMap = new Map<string, boolean>()
-        roomUsers.forEach((u) => {
+        roomUsers.forEach(u => {
           roomUsersMap.set(u.id, true)
         })
         const toDeleteIds: string[] = []
@@ -136,6 +136,10 @@ async function start() {
           }
         }
 
+        if (toDeleteIds.length) {
+          event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
+        }
+
         if (notCheckedUsers) {
           notCheckedUsers = notCheckedUsers.substring(
             0,
@@ -144,7 +148,7 @@ async function start() {
           console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
           Messenger.send(`三天都未打卡： ${notCheckedUsers}`)
           console.log(`🌟[Notice]: 准备移除三天都未打卡成员`)
-          event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
+          from && from.say(`三天都未打卡: ${notCheckedUsers}`)
         } else {
           from && from.say('三天内所有用户都完成的打卡')
           console.log(`🌟[Notice]: 三天内所有用户都完成的打卡`)
@@ -187,7 +191,7 @@ async function start() {
             console.log(`📦[DB]: 写入初始化${pList.length}位用户信息成功`)
             utils.setUserDataIsInit()
           })
-          .catch((err) => {
+          .catch(err => {
             console.error('📦[DB]: 写入初始化用户信息失败', err)
           })
           .finally(() => {
@@ -216,7 +220,7 @@ async function start() {
         .then(() => {
           console.log(`📦[DB]: 标记用户为已删除成功 - ${toDeleteIds}`)
         })
-        .catch((err) => {
+        .catch(err => {
           console.error('📦[DB]: 标记用户为已删除数据失败', toDeleteIds, err)
         })
   })
@@ -239,7 +243,7 @@ async function start() {
       const roomUsers = await room.memberAll()
 
       const currentUserMap = new Map<string, boolean>()
-      roomUsers.forEach((u) => {
+      roomUsers.forEach(u => {
         currentUserMap.set(u.id, true)
       })
 
@@ -261,17 +265,17 @@ async function start() {
 
       const dbUsers = await connection.getRepository(User).find()
       const toDeleteUsers: User[] = dbUsers.filter(
-        (u) => !currentUserMap.has(u.wechat),
+        u => !currentUserMap.has(u.wechat),
       )
 
       if (toDeleteUsers.length) {
         console.log(
           `🌟[Notice]: 以下用户已不在群里：${toDeleteUsers
-            .map((u) => `@${u.wechatName}`)
+            .map(u => `@${u.wechatName}`)
             .join(' ')}`,
         )
         toChange += `${toChange.length ? '\n' : ''}以下用户已不在群里：\n`
-        toDeleteUsers.forEach((u) => {
+        toDeleteUsers.forEach(u => {
           toChange += `@${u.wechatName}，`
           pList.push(connection.getRepository(User).softRemove(u))
         })
@@ -284,7 +288,7 @@ async function start() {
             console.log(`📦[DB]: 所有用户信息更新成功 - ${toChange}`)
             toUser.say(toChange)
           })
-          .catch((err) => {
+          .catch(err => {
             console.error('📦[DB]: 所有用户信息更新失败', toChange, err)
           })
       } else {
@@ -294,7 +298,7 @@ async function start() {
     }
   })
 
-  initBot().then(async (bot) => {
+  initBot().then(async bot => {
     checkTodayCheckInSchedule()
     robot = bot
 
@@ -304,7 +308,7 @@ async function start() {
         room.on('join', async (inviteeList, inviter) => {
           let nameList = ''
           let wechatIdList = ''
-          inviteeList.forEach((user) => {
+          inviteeList.forEach(user => {
             nameList += `${user.name()},`
             wechatIdList += `${user.id},`
           })
@@ -320,7 +324,7 @@ async function start() {
           console.log(`📦[DB]: 开始写入新用户信息: ${nameList}`)
 
           const pList: Promise<User>[] = []
-          inviteeList.forEach((newUser) => {
+          inviteeList.forEach(newUser => {
             const user = new User()
             user.enterRoomDate = new Date()
             user.wechat = newUser.id
@@ -331,7 +335,7 @@ async function start() {
             .then(() => {
               console.log(`📦[DB]: 写入新用户数据成功 - ${wechatIdList}`)
             })
-            .catch((err) => {
+            .catch(err => {
               console.error('📦[DB]: 写入新用户数据失败', wechatIdList, err)
             })
         })
@@ -339,7 +343,7 @@ async function start() {
           console.log(`🌟[Notice]: 检测到有人离开了群聊`)
           let nameList = ''
           let wechatIdList = ''
-          leaverList.forEach((user) => {
+          leaverList.forEach(user => {
             nameList += `${user.name()},`
             wechatIdList += `${user.id},`
           })

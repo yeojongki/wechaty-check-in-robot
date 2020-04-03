@@ -3,7 +3,6 @@
     "target": "ESNEXT",
     "module": "commonjs",
     "sourceMap": false,
-    // "outFile": "./",
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,

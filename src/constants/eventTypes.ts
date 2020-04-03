@@ -38,7 +38,7 @@ export enum EventTypes {
    * 更新群组中用户信息
    */
   UPDATE_ROOM_USER = 'UPDATE_ROOM_USER',
-  
+
   /**
    * 历史上的今天
    */

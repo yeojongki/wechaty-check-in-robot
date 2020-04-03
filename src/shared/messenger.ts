@@ -10,11 +10,8 @@ export default class Messenger {
       .get(`https://sc.ftqq.com/${SCKEY}.send`, {
         params: {
           text,
-          desp
-        }
-      })
-      .then(res => {
-        // console.log(res)
+          desp,
+        },
       })
       .catch(err => {
         console.error(err)

@@ -22,12 +22,12 @@ export function connect(): Promise<Connection> {
       synchronize: true,
       logging: false,
     })
-      .then((_connection) => {
+      .then(_connection => {
         console.log('📦[DB]: 数据库连接成功!')
         connection = _connection
         resolve(_connection)
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error)
         console.error('📦[DB]: 数据库连接失败!', error)
       })
@@ -38,7 +38,7 @@ export function findUserByWechat(
   connection: Connection,
   wechat: string,
 ): Promise<User | null> {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     const user = await connection.getRepository(User).findOne({ wechat })
     resolve(user)
   })

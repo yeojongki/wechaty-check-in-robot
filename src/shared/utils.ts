@@ -18,7 +18,7 @@ function setUserDataIsInit(): void {
   fs.writeFile(
     path.resolve(__dirname, '..', '..', USER_INIT_FILE_NAME),
     JSON.stringify({ init: true }),
-    (err) => {
+    err => {
       if (err) {
         console.error('🌟[Notice]: 写入初始化文件失败', err)
       }
