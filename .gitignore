@@ -106,3 +106,6 @@ dist
 # wechaty
 *.memory-card.json
 *.users-init.json
+
+# deploy
+deploy.sh

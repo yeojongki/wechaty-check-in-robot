@@ -79,4 +79,16 @@ export default class Config {
   get DB_NAME() {
     return this.config['DB_NAME']
   }
+
+  get WEBHOOK_PORT() {
+    return this.config['WEBHOOK_PORT']
+  }
+
+  get WEBHOOK_PATH() {
+    return this.config['WEBHOOK_PATH']
+  }
+
+  get WEBHOOK_SECRET() {
+    return this.config['WEBHOOK_SECRET']
+  }
 }
