@@ -61,7 +61,7 @@ async function start() {
     event.emit(EventTypes.DO_BOT_NOTICE, notCheckMap)
   })
 
-  event.on(EventTypes.DO_BOT_NOTICE, async (wechatIdMap) => {
+  event.on(EventTypes.DO_BOT_NOTICE, async wechatIdMap => {
     console.log('🌟[Notice]: 开始发布昨天成员未打卡情况')
     try {
       const wechaty = robot ? robot : await initBot()
