@@ -23,8 +23,6 @@ const server = http.createServer((req, res) => {
     })
     .on('end', () => {
       const isValidSinature = validteSinature(body, signature as string)
-      res.writeHead(404)
-      res.end()
 
       if (
         req.url === WEBHOOK_PATH &&
@@ -40,7 +38,7 @@ const server = http.createServer((req, res) => {
           const cost = +new Date() - now
           console.log(`🌟[Notice]: deploy cost ${cost / 1000 / 60}s`)
           res.writeHead(200)
-          res.end('Done')
+          res.end()
         })
         exexProcess.stdout &&
           exexProcess.stdout.on('data', e => {
