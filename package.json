@@ -2,7 +2,7 @@
   "name": "wechaty-check-in-robot",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "src/main.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node src/main.ts",
@@ -13,17 +13,18 @@
   "keywords": [
     "wechaty",
     "check-in",
-    "robot"
+    "robot",
+    "微信"
   ],
   "author": "yeojongki@foxmail.com",
-  "license": "ISC",
+  "license": "MIT",
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
-    "*.ts?(x)": [
+    "**/*.ts": [
       "prettier --write",
       "git add"
     ]
