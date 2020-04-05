@@ -91,4 +91,8 @@ export default class Config {
   get WEBHOOK_SECRET() {
     return this.config['WEBHOOK_SECRET']
   }
+
+  get PROJECT_DIR() {
+    return this.config['PROJECT_DIR']
+  }
 }

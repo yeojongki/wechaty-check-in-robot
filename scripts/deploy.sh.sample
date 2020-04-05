@@ -1,18 +1,16 @@
 #!/bin/bash
 
-PROJECT_DIR = 'your-project-path'
-PROJECT_NAME = 'your-project-name'
+PROJECT_NAME = your-project-name
 
-echo '🚀 start deploy'
-cd PROJECT_DIR
+echo 🚀 start deploy
 
-echo '⌛ pull code'
+echo ⌛ pull code
 git pull
 
-echo '⌛ build code'
+echo ⌛ build code
 yarn build
 
-echo '⌛ pm2 reload code'
+echo ⌛ pm2 reload code
 pm2 reload PROJECT_NAME
 
-echo '🌟 deploy success!'
+echo 🌟 deploy success!
