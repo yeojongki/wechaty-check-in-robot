@@ -34,6 +34,9 @@ const server = http.createServer((req, res) => {
           if (err) {
             process.stderr.write(String(err))
             console.log('🌟[Notice]: webhook server deploy error', err)
+            res.writeHead(500)
+            res.end()
+            return
           }
           const cost = +new Date() - now
           console.log(`🌟[Notice]: deploy cost ${cost / 1000 / 60}s`)
