@@ -95,4 +95,8 @@ export default class Config {
   get PROJECT_DIR() {
     return this.config['PROJECT_DIR']
   }
+
+  get PROJECT_BRANCH() {
+    return this.config['PROJECT_BRANCH']
+  }
 }
