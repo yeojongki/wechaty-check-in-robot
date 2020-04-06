@@ -7,6 +7,9 @@ echo 🚀 start deploy
 echo ⌛ pull code
 git pull
 
+echo ⌛ install modules
+yarn install
+
 echo ⌛ build code
 yarn build
 
