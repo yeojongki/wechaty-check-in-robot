@@ -1,4 +1,4 @@
-import Axios from 'axios'
+import axios from 'axios'
 
 export default function getHistoryToday(): Promise<string> {
   console.log(`🌟[Notice]: 开始获取历史上的今天`)
@@ -10,7 +10,8 @@ export default function getHistoryToday(): Promise<string> {
     const dateStr = date < 10 ? `0${date}` : date
     const url = `https://baike.baidu.com/cms/home/eventsOnHistory/${monthStr}.json?_=${+now}`
 
-    Axios.get(url)
+    axios
+      .get(url)
       .then(async res => {
         console.log(`🌟[Notice]: 成功获取历史上的今天`)
         const todayKey = `${monthStr}${dateStr}`

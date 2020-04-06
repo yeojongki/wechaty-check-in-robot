@@ -5,10 +5,10 @@
   "main": "src/main.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node src/main.ts",
+    "dev": "ts-node-dev --respawn --transpileOnly -r tsconfig-paths/register src/main.ts",
     "lint": "yarn prettier",
     "prettier": "prettier --write \"src/**/*.ts\"",
-    "build": "tsc"
+    "build": "ttsc"
   },
   "keywords": [
     "wechaty",
@@ -47,7 +47,10 @@
     "husky": "^4.2.3",
     "lint-staged": "^10.1.1",
     "prettier": "^2.0.2",
-    "ts-node": "^8.8.1",
-    "typescript": "^3.8.3"
+    "ts-node-dev": "^1.0.0-pre.44",
+    "tsconfig-paths": "^3.9.0",
+    "ttypescript": "^1.5.10",
+    "typescript": "^3.8.3",
+    "typescript-transform-paths": "^1.1.14"
   }
 }

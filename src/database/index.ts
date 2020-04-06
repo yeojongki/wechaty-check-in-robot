@@ -1,6 +1,6 @@
 import { createConnection, Connection } from 'typeorm'
-import { User } from '../entities/user.entity'
-import Config from '../config'
+import { User } from '@/entities/user.entity'
+import Config from '@/config'
 
 let connection: null | Connection = null
 

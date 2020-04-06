@@ -1,9 +1,9 @@
 import PuppetPadplus from 'wechaty-puppet-padplus'
 import { Wechaty, ScanStatus } from 'wechaty'
 import QrcodeTerminal from 'qrcode-terminal'
-import Messenger from '../shared/messenger'
+import Messenger from '@/shared/messenger'
 import { onError } from './onError'
-import Config from '../config'
+import Config from '@/config'
 import { onMessage } from './onMessage'
 
 const config = Config.getInstance()

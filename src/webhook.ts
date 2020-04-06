@@ -36,7 +36,7 @@ const server = http.createServer((req, res) => {
         const now = +new Date()
         const scriptDir = path.resolve(PROJECT_DIR, 'scripts')
         const exexProcess = exec(
-          `cd ${scriptDir} && git checkout ${PROJECT_BRANCH} && sh deploy.sh`,
+          `cd ${scriptDir} && git checkout ${PROJECT_BRANCH} && yarn install && sh deploy.sh`,
           err => {
             if (err) {
               process.stderr.write(String(err))

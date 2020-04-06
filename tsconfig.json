@@ -12,6 +12,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "plugins": [{ "transform": "typescript-transform-paths" }],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

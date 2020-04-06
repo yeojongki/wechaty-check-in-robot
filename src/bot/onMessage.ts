@@ -1,9 +1,9 @@
 import { Message } from 'wechaty'
 import { MessageType } from 'wechaty-puppet'
-import Config from '../config'
-import event from '../shared/events'
-import { EventTypes } from '../constants/eventTypes'
-import shared from '../shared/utils'
+import Config from '@/config'
+import event from '@/shared/events'
+import { EventTypes } from '@/constants/eventTypes'
+import shared from '@/shared/utils'
 import adminHandler from './handleAdminMsg'
 
 let userDataInited: boolean = shared.checkUserDataIsInit()

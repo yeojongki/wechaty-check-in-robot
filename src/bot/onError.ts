@@ -1,5 +1,5 @@
-import Messenger from '../shared/messenger'
-import Config from '../config'
+import Messenger from '@/shared/messenger'
+import Config from '@/config'
 
 export function onError(err: Error) {
   Messenger.send(

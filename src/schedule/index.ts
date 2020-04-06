@@ -1,6 +1,6 @@
 import * as schedule from 'node-schedule'
-import event from '../shared/events'
-import { EventTypes } from '../constants/eventTypes'
+import event from '@/shared/events'
+import { EventTypes } from '@/constants/eventTypes'
 
 // *    *    *    *    *    *
 // ┬    ┬    ┬    ┬    ┬    ┬

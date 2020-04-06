@@ -1,11 +1,11 @@
-import { connect } from '../database'
-import { User } from '../entities'
+import { connect } from '@/database'
+import { User } from '@/entities'
 import { Message } from 'wechaty'
-import getNotCheckInUsers from '../shared/getNotCheckInUsers'
-import utils from '../shared/utils'
-import event from '../shared/events'
-import { EventTypes } from '../constants/eventTypes'
-import getHistoryToday from '../shared/getHistoryToday'
+import getNotCheckInUsers from '@/shared/getNotCheckInUsers'
+import utils from '@/shared/utils'
+import event from '@/shared/events'
+import { EventTypes } from '@/constants/eventTypes'
+import getHistoryToday from '@/shared/getHistoryToday'
 
 async function checkIsAdmin(wechat: string) {
   const connection = await connect()

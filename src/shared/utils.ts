@@ -1,6 +1,6 @@
 import fs from 'fs'
 import * as path from 'path'
-import Config from '../config'
+import Config from '@/config'
 const config = Config.getInstance()
 const USER_INIT_FILE_NAME = `${config.ROOM_NAME}.users-init.json`
 
