@@ -42,6 +42,10 @@ export async function onMessage(msg: Message) {
 
       const msgText = msg.text()
 
+      // 不处理 `@所有人`
+      // 一般为管理员通知消息 可能会包含关键字 `打卡` or `请假`
+      if (msgText.includes('@所有人') || msgText.includes('@All')) return
+
       // 判定请假
       if (msgText.includes('请假')) {
         const wechat = from.id
