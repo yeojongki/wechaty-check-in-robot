@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROJECT_NAME = your-project-name
+PROJECT_NAME=your-project-name
 
 echo 🚀 start deploy
 
@@ -14,6 +14,6 @@ echo ⌛ build code
 yarn build
 
 echo ⌛ pm2 reload code
-pm2 reload PROJECT_NAME
+pm2 reload $PROJECT_NAME
 
 echo 🌟 deploy success!
