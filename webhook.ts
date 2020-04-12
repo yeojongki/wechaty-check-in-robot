@@ -1,8 +1,13 @@
 import http from 'http'
-import Config from './config'
+import Config from './src/config'
 import { exec } from 'child_process'
 import crypto from 'crypto'
 import * as path from 'path'
+
+interface Commit {
+  added: string[]
+  modified: string[]
+}
 
 const config = Config.getInstance()
 const { WEBHOOK_PORT, WEBHOOK_PATH, PROJECT_DIR, PROJECT_BRANCH } = config
@@ -16,6 +21,25 @@ function validteSinature(body: string, headertSinature: string) {
   return headertSinature === signed
 }
 
+function shouldDeploy(bodyStr: string) {
+  const body = JSON.parse(bodyStr)
+  const commits: Commit[] = body.commits
+  const includePath = 'src'
+  for (const commit of commits) {
+    for (const item of commit.added) {
+      if (item.startsWith(includePath)) {
+        return true
+      }
+    }
+    for (const item of commit.modified) {
+      if (item.startsWith(includePath)) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 const port = process.env.PORT || WEBHOOK_PORT || 8077
 const server = http.createServer((req, res) => {
   const signature = req.headers['x-hub-signature']
@@ -25,11 +49,14 @@ const server = http.createServer((req, res) => {
       body += data.toString()
     })
     .on('end', () => {
+      const isModified = shouldDeploy(body)
+
       const isValidSinature = validteSinature(body, signature as string)
       if (
         req.url === WEBHOOK_PATH &&
         req.method === 'POST' &&
-        isValidSinature
+        isValidSinature &&
+        isModified
       ) {
         res.writeHead(200)
         res.end()
