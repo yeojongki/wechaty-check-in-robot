@@ -5,9 +5,13 @@ import event from '@/shared/events'
 import { EventTypes } from '@/constants/eventTypes'
 import shared from '@/shared/utils'
 import adminHandler from './handleAdminMsg'
+import { THREE_MINUTES } from '@/constants/time'
 
 let userDataInited: boolean = shared.checkUserDataIsInit()
-const checkInMap = new Map<string, Date>()
+// 上次打卡情况 { wechat: Date }
+const LAST_CHECKED_IN = new Map<string, Date>()
+// 警告打卡没有内容 { wechat: NodeJS.Timeout }
+const WARN_NO_CONTENT = new Map<string, NodeJS.Timeout>()
 
 export async function onMessage(msg: Message) {
   // skip self
@@ -41,6 +45,9 @@ export async function onMessage(msg: Message) {
       }
 
       const msgText = msg.text()
+      const wechat = from.id
+      const name = from.name()
+      const time = new Date()
 
       // 不处理 `@所有人`
       // 一般为管理员通知消息 可能会包含关键字 `打卡` or `请假`
@@ -48,9 +55,6 @@ export async function onMessage(msg: Message) {
 
       // 判定请假
       if (msgText.includes('请假')) {
-        const wechat = from.id
-        const name = from.name()
-        const time = new Date()
         console.log(
           `✂️[Ask For Leave]: 检测到请假 - 用户「${wechat}」-「${name}」`,
         )
@@ -65,18 +69,42 @@ export async function onMessage(msg: Message) {
         return
       }
 
+      // 只有 `打卡` 两个字
+      if (msgText === '打卡') {
+        // 已开启警告定时器
+        if (WARN_NO_CONTENT.get(wechat)) {
+          return
+        }
+
+        const timer = setTimeout(async () => {
+          await room.say(`@${name} 打卡失败❌ 请补充打卡内容`)
+        }, THREE_MINUTES)
+        WARN_NO_CONTENT.set(wechat, timer)
+
+        console.log(
+          `🌟[Notice]: 检测到用户没有打卡内容, 开启警告定时器 - ${name} - ${wechat}`,
+        )
+        return
+      }
+
       // 判定打卡成功
       if (msgText.includes('打卡') || msg.type() === MessageType.Image) {
-        const wechat = from.id
-        const name = from.name()
-        const time = new Date()
+        // 设置已打卡
+        LAST_CHECKED_IN.set(wechat, time)
+
+        // 移除警告定时器
+        const warnTimer = WARN_NO_CONTENT.get(wechat)
+        if (warnTimer) {
+          clearTimeout(warnTimer)
+          WARN_NO_CONTENT.delete(wechat)
+          console.log(`🌟[Notice]: ${name} 已补充打卡内容, 移除警告定时器`)
+        }
 
         // 过滤三秒内重复打卡信息
-        const lastCheckIn = checkInMap.get(wechat)
+        const lastCheckIn = LAST_CHECKED_IN.get(wechat)
         if (lastCheckIn && +time - +lastCheckIn < 3000) {
           return
         }
-        checkInMap.set(wechat, time)
 
         console.log(`📌[Check In]: 检测到打卡 - 用户「${wechat}」-「${name}」`)
         event.emit(EventTypes.CHECK_IN, {
