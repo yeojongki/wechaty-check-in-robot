@@ -37,6 +37,8 @@ function shouldDeploy(bodyStr: string) {
       }
     }
   }
+
+  console.log('🌟[Webhook Server]: not modified')
   return false
 }
 
@@ -67,11 +69,11 @@ const server = http.createServer((req, res) => {
           err => {
             if (err) {
               process.stderr.write(String(err))
-              console.log('🌟[Notice]: webhook server deploy error', err)
+              console.log('🌟[Webhook Server]: deploy error', err)
               return
             }
             const cost = +new Date() - now
-            console.log(`🌟[Notice]: deploy cost ${cost / 1000 / 60}s`)
+            console.log(`🌟[Webhook Server]: deploy cost ${cost / 1000 / 60}s`)
           },
         )
         exexProcess.stdout &&
@@ -86,9 +88,9 @@ const server = http.createServer((req, res) => {
 })
 
 server.listen(port, () => {
-  console.log('🌟[Notice]: webhook server start at port ' + port)
+  console.log('🌟[Webhook Server]: start at port ' + port)
 })
 
 server.on('error', err => {
-  console.error('🌟[Notice]: webhook server error', err)
+  console.error('🌟[Webhook Server]: error', err)
 })
