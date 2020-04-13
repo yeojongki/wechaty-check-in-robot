@@ -4,7 +4,7 @@
     "module": "commonjs",
     "sourceMap": false,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -19,6 +19,6 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
   },
-  "include": ["webhook.ts"],
+  "include": ["webhook.ts", "src"],
   "exclude": ["node_modules"]
 }

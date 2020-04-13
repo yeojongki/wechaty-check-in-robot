@@ -97,9 +97,6 @@ export async function onMessage(msg: Message) {
 
       // 判定打卡成功
       if (msgText.includes('打卡') || msg.type() === MessageType.Image) {
-        // 设置已打卡
-        LAST_CHECKED_IN.set(wechat, time)
-
         // 移除警告定时器
         const warnTimer = WARN_NO_CONTENT.get(wechat)
         if (warnTimer) {
@@ -113,6 +110,9 @@ export async function onMessage(msg: Message) {
         if (lastCheckIn && +time - +lastCheckIn < 3000) {
           return
         }
+
+        // 设置已打卡
+        LAST_CHECKED_IN.set(wechat, time)
 
         console.log(`📌[Check In]: 检测到打卡 - 用户「${wechat}」-「${name}」`)
         event.emit(EventTypes.CHECK_IN, {
