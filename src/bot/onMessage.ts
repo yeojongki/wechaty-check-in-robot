@@ -71,6 +71,15 @@ export async function onMessage(msg: Message) {
 
       // 只有 `打卡` 两个字
       if (msgText === '打卡') {
+        // 添加 3s 的时间间隔 避免以下情况发生
+        // 1. 先发图片触发了打卡事件
+        // 2. 再发 `打卡` 两个字
+        // 此时会触发 `没有打卡内容警告` 事件
+        const lastCheckIn = LAST_CHECKED_IN.get(wechat)
+        if (lastCheckIn && +time - +lastCheckIn < 3000) {
+          return
+        }
+
         // 已开启警告定时器
         if (WARN_NO_CONTENT.get(wechat)) {
           return
