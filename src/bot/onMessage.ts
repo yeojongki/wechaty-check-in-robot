@@ -99,7 +99,8 @@ export async function onMessage(msg: Message) {
       if (
         msgText.includes('打卡') ||
         msg.type() === MessageType.Image ||
-        msg.type() === MessageType.Video
+        msg.type() === MessageType.Video ||
+        msg.type() === MessageType.Url
       ) {
         // 移除警告定时器
         const warnTimer = WARN_NO_CONTENT.get(wechat)
