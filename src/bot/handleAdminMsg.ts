@@ -47,7 +47,10 @@ async function handleAdminMsg(msg: Message) {
 
   if (msgText === '2') {
     console.log(`🌟[Notice]: 查看三天都未签到用户 - by ${from.name()}`)
-    event.emit(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN, from)
+    event.emit(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN, {
+      from,
+      useMessenger: false,
+    })
   }
 
   if (msgText === '3') {

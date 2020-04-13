@@ -84,80 +84,88 @@ async function start() {
           }
         }
 
-        console.log(`🌟[Notice]: 昨日未打卡同学如下: ${usersToAt}`)
-
         // TODO: 名单太长可能需要分多条发送
         if (count) {
+          console.log(`🌟[Notice]: 昨日未打卡同学如下: ${usersToAt}`)
           await room.say(
             usersToAt +
               `以上${count}位同学昨日没有学习打卡噢，今天快快学习起来吧！`,
           )
         }
 
-        console.log(`🌟[Notice]: 准备移除昨日未打卡成员`)
-        toDeleteIds.length && event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
+        toDeleteIds.length &&
+          console.log(`🌟[Notice]: 准备移除昨日未打卡成员`) &&
+          event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
       }
     } catch (error) {
       console.error('🏹[Event]: 发布昨天成员未打卡情况发生错误', error)
     }
   })
 
-  event.on(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN, async (from?: Contact) => {
-    console.log('🌟[Notice]: 开始检测三天内未打卡成员')
-    try {
-      const now = +new Date()
-      const users = await connection.getRepository(User).find()
-      const wechaty = robot ? robot : await initBot()
-      const room = await wechaty.Room.find(targetRoomName)
-      if (room) {
-        const roomUsers = await room.memberAll()
-        // { id: boolean }
-        const roomUsersMap = new Map<string, boolean>()
-        roomUsers.forEach(u => {
-          roomUsersMap.set(u.id, true)
-        })
-        const toDeleteIds: string[] = []
+  event.on(
+    EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN,
+    async ({
+      useMessenger = true,
+      from,
+    }: {
+      useMessenger: Boolean
+      from?: Contact
+    }) => {
+      console.log('🌟[Notice]: 开始检测三天内未打卡成员')
+      try {
+        const now = +new Date()
+        const users = await connection.getRepository(User).find()
+        const wechaty = robot ? robot : await initBot()
+        const room = await wechaty.Room.find(targetRoomName)
+        if (room) {
+          const roomUsers = await room.memberAll()
+          // { id: boolean }
+          const roomUsersMap = new Map<string, boolean>()
+          roomUsers.forEach(u => {
+            roomUsersMap.set(u.id, true)
+          })
+          const toDeleteIds: string[] = []
 
-        let notCheckedUsers: string = ''
+          let notCheckedUsers: string = ''
 
-        for (const user of users) {
-          if (!user.isWhiteList) {
-            // 三天没有签到
-            if (
-              (!user.checkedIn && now - +user.enterRoomDate >= THREE_DAY) ||
-              (user.checkedIn && now - +user.checkedIn >= THREE_DAY)
-            ) {
-              notCheckedUsers += `@${user.wechatName} `
-              if (room) {
-                const isDeleted = !roomUsersMap.has(user.wechat)
-                isDeleted && toDeleteIds.push(user.wechat)
+          for (const user of users) {
+            if (!user.isWhiteList) {
+              // 三天没有签到
+              if (
+                (!user.checkedIn && now - +user.enterRoomDate >= THREE_DAY) ||
+                (user.checkedIn && now - +user.checkedIn >= THREE_DAY)
+              ) {
+                notCheckedUsers += `@${user.wechatName} `
+                if (room) {
+                  const isDeleted = !roomUsersMap.has(user.wechat)
+                  isDeleted && toDeleteIds.push(user.wechat)
+                }
               }
             }
           }
-        }
 
-        if (toDeleteIds.length) {
-          event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
-        }
+          toDeleteIds.length &&
+            event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
 
-        if (notCheckedUsers) {
-          notCheckedUsers = notCheckedUsers.substring(
-            0,
-            notCheckedUsers.length - 1,
-          )
-          console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
-          Messenger.send(`三天都未打卡： ${notCheckedUsers}`)
-          console.log(`🌟[Notice]: 准备移除三天都未打卡成员`)
-          from && from.say(`三天都未打卡: ${notCheckedUsers}`)
-        } else {
-          from && from.say('三天内所有用户都完成的打卡')
-          console.log(`🌟[Notice]: 三天内所有用户都完成的打卡`)
+          if (notCheckedUsers) {
+            notCheckedUsers = notCheckedUsers.substring(
+              0,
+              notCheckedUsers.length - 1,
+            )
+            console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
+            useMessenger && Messenger.send(`三天都未打卡： ${notCheckedUsers}`)
+            console.log(`🌟[Notice]: 准备移除三天都未打卡成员`)
+            from && from.say(`三天都未打卡: ${notCheckedUsers}`)
+          } else {
+            from && from.say('三天内所有用户都完成的打卡')
+            console.log(`🌟[Notice]: 三天内所有用户都完成的打卡`)
+          }
         }
+      } catch (error) {
+        console.error('🏹[Event]: 检测三天内未打卡成员发生错误', error)
       }
-    } catch (error) {
-      console.error('🏹[Event]: 检测三天内未打卡成员发生错误', error)
-    }
-  })
+    },
+  )
 
   event.on(EventTypes.FIRST_IN_TARGET_ROOM, async (room: Room) => {
     if (isInitUserDataIng) return
@@ -230,9 +238,7 @@ async function start() {
     const toSend = await getHistoryToday()
     const wechaty = robot ? robot : await initBot()
     const room = await wechaty.Room.find(targetRoomName)
-    if (room) {
-      room.say(toSend)
-    }
+    room && room.say(toSend)
   })
 
   event.on(EventTypes.UPDATE_ROOM_USER, async (toUser: Contact) => {
