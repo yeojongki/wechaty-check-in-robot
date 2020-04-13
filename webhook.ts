@@ -52,7 +52,6 @@ const server = http.createServer((req, res) => {
     })
     .on('end', () => {
       const isModified = shouldDeploy(body)
-
       const isValidSinature = validteSinature(body, signature as string)
       if (
         req.url === WEBHOOK_PATH &&

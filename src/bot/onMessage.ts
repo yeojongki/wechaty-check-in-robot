@@ -5,7 +5,7 @@ import event from '@/shared/events'
 import { EventTypes } from '@/constants/eventTypes'
 import shared from '@/shared/utils'
 import adminHandler from './handleAdminMsg'
-import { THREE_MINUTES } from '@/constants/time'
+import { ONE_MINUTE } from '@/constants/time'
 
 let userDataInited: boolean = shared.checkUserDataIsInit()
 // 上次打卡情况 { wechat: Date }
@@ -71,12 +71,11 @@ export async function onMessage(msg: Message) {
 
       // 只有 `打卡` 两个字
       if (msgText === '打卡') {
-        // 添加 3s 的时间间隔 避免以下情况发生
-        // 1. 先发图片触发了打卡事件
-        // 2. 再发 `打卡` 两个字
-        // 此时会触发 `没有打卡内容警告` 事件
+        // 如果本次发送 `打卡` 距离上次打卡成功时间低于 2 分钟
+        // 则认为用户是先发图片 再发文字 `打卡` 二字
+        // 此时不做判断
         const lastCheckIn = LAST_CHECKED_IN.get(wechat)
-        if (lastCheckIn && +time - +lastCheckIn < 3000) {
+        if (lastCheckIn && +time - +lastCheckIn < ONE_MINUTE * 2) {
           return
         }
 
@@ -87,7 +86,7 @@ export async function onMessage(msg: Message) {
 
         const timer = setTimeout(async () => {
           await room.say(`@${name} 打卡失败❌ 请补充打卡内容`)
-        }, THREE_MINUTES)
+        }, ONE_MINUTE * 3)
         WARN_NO_CONTENT.set(wechat, timer)
 
         console.log(
