@@ -96,7 +96,11 @@ export async function onMessage(msg: Message) {
       }
 
       // 判定打卡成功
-      if (msgText.includes('打卡') || msg.type() === MessageType.Image) {
+      if (
+        msgText.includes('打卡') ||
+        msg.type() === MessageType.Image ||
+        msg.type() === MessageType.Video
+      ) {
         // 移除警告定时器
         const warnTimer = WARN_NO_CONTENT.get(wechat)
         if (warnTimer) {
