@@ -15,9 +15,9 @@ export enum EventTypes {
   CHECK_TODAY_USER_CHECK_IN = 'CHECK_TODAY_USER_CHECK_IN',
 
   /**
-   * 机器人开始在房间发布提醒成员未打卡情况
+   * 机器人发布昨日成员打卡情况
    */
-  DO_BOT_NOTICE = 'DO_BOT_NOTICE',
+  DO_YESTERDAY_BOT_NOTICE = 'DO_YESTERDAY_BOT_NOTICE',
 
   /**
    * 检测三天内未打卡成员

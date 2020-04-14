@@ -57,50 +57,85 @@ async function start() {
   event.on(EventTypes.CHECK_TODAY_USER_CHECK_IN, async () => {
     console.log('🌟[Notice]: 开始检测今天用户签到记录')
 
-    const { notCheckMap } = await getNotCheckInUsers()
-    event.emit(EventTypes.DO_BOT_NOTICE, notCheckMap)
+    const { notCheckMap, leaveAtMap } = await getNotCheckInUsers()
+    event.emit(EventTypes.DO_YESTERDAY_BOT_NOTICE, notCheckMap, leaveAtMap)
   })
 
-  event.on(EventTypes.DO_BOT_NOTICE, async wechatIdMap => {
-    console.log('🌟[Notice]: 开始发布昨天成员未打卡情况')
-    try {
-      const wechaty = robot ? robot : await initBot()
-      const room = await wechaty.Room.find(targetRoomName)
-      const toDeleteIds: string[] = []
+  event.on(
+    EventTypes.DO_YESTERDAY_BOT_NOTICE,
+    async (notCheckMap, leaveAtMap) => {
+      console.log('🌟[Notice]: 开始发布昨天成员未打卡情况')
+      try {
+        const wechaty = robot ? robot : await initBot()
+        const room = await wechaty.Room.find(targetRoomName)
+        const toDeleteIds: string[] = []
 
-      if (room) {
-        const allUsers = await room.memberAll()
-        let usersToAt = ''
-        let count = 0
+        if (room) {
+          const allUsers = await room.memberAll()
+          let notCheckUsers = ''
+          let askForLeaveUsers = ''
+          let notCheckCount = 0
+          let askForLeaveCount = 0
 
-        for (const user of allUsers) {
-          if (wechatIdMap[user.id]) {
-            const isInRoom = await room.has(user)
-            !isInRoom && toDeleteIds.push(user.id)
-            if (isInRoom) {
-              count++
-              usersToAt += `@${user.name()} `
+          for (const user of allUsers) {
+            if (notCheckMap[user.id]) {
+              const isInRoom = await room.has(user)
+              !isInRoom && toDeleteIds.push(user.id)
+              if (isInRoom) {
+                notCheckCount++
+                notCheckUsers += `@${user.name()} `
+              }
+            }
+            if (leaveAtMap[user.id]) {
+              const isInRoom = await room.has(user)
+              !isInRoom && toDeleteIds.push(user.id)
+              if (isInRoom) {
+                askForLeaveCount++
+                askForLeaveUsers += `@${user.name()} `
+              }
             }
           }
-        }
 
-        // TODO: 名单太长可能需要分多条发送
-        if (count) {
-          console.log(`🌟[Notice]: 昨日未打卡同学如下: ${usersToAt}`)
-          await room.say(
-            usersToAt +
-              `以上${count}位同学昨日没有学习打卡噢，今天快快学习起来吧！`,
-          )
-        }
+          let toSend = '昨日打卡情况: \n'
 
-        toDeleteIds.length &&
-          console.log(`🌟[Notice]: 准备移除昨日未打卡成员`) &&
-          event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
+          // TODO: 名单太长可能需要分多条发送
+          if (notCheckCount) {
+            console.log(`🌟[Notice]: 昨日未打卡同学如下: ${notCheckUsers}`)
+            toSend += `${notCheckUsers} 以上${notCheckCount}位同学没有学习打卡噢，`
+          }
+
+          if (askForLeaveCount) {
+            console.log(`🌟[Notice]: 昨日请假同学如下: ${askForLeaveUsers}`)
+            toSend += `共${askForLeaveCount}位同学请假，`
+          }
+
+          // 确定最终发送内容
+          // 部分没打卡 or 部分请假
+          if (askForLeaveCount || notCheckCount) {
+            toSend += '今天快快学习起来吧！'
+          }
+
+          // 除了请假的都打了卡
+          if (askForLeaveCount && !notCheckCount) {
+            toSend =
+              '昨日除了请假的同学，其他同学都完成了打卡，争取全员打卡噢[加油]'
+          }
+
+          // 所有人完成打卡并且无请假
+          if (!askForLeaveCount && !notCheckCount) {
+            toSend = '昨日所有同学都完成了打卡，棒棒哒！[哇]'
+          }
+          await room.say(toSend)
+
+          toDeleteIds.length &&
+            console.log(`🌟[Notice]: 准备在数据库中移除已不在群组的成员`) &&
+            event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
+        }
+      } catch (error) {
+        console.error('🏹[Event]: 发布昨天成员未打卡情况发生错误', error)
       }
-    } catch (error) {
-      console.error('🏹[Event]: 发布昨天成员未打卡情况发生错误', error)
-    }
-  })
+    },
+  )
 
   event.on(
     EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN,
@@ -145,6 +180,7 @@ async function start() {
           }
 
           toDeleteIds.length &&
+            console.log(`🌟[Notice]: 准备在数据库中移除已不在群组的成员`) &&
             event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
 
           if (notCheckedUsers) {
@@ -154,7 +190,6 @@ async function start() {
             )
             console.log(`🌟[Notice]: 三天都未打卡: ${notCheckedUsers}`)
             useMessenger && Messenger.send(`三天都未打卡： ${notCheckedUsers}`)
-            console.log(`🌟[Notice]: 准备移除三天都未打卡成员`)
             from && from.say(`三天都未打卡: ${notCheckedUsers}`)
           } else {
             from && from.say('三天内所有用户都完成的打卡')

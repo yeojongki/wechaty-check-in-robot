@@ -11,32 +11,41 @@ export default async function getNotCheckInUsers(
     const connection = await connect()
     const users = await connection.getRepository(User).find()
     const notCheckMap: Record<string, boolean> = {}
-    const names: string[] = []
+    const leaveAtMap: Record<string, boolean> = {}
+    const notCheckNames: string[] = []
+    const askForLeaveNames: string[] = []
 
     for (const user of users) {
       // 排除白名单和当天请假的
-      if (user.isWhiteList || (user.leaveAt && now - +user.leaveAt <= dayLen)) {
+      if (user.isWhiteList) {
         continue
+      } else if (user.leaveAt && now - +user.leaveAt <= dayLen) {
+        leaveAtMap[user.wechat] = true
+        askForLeaveNames.push(user.wechatName)
       } else {
         // 没签到记录或者今天没签到
         if (
           (!user.checkedIn && now - +user.enterRoomDate >= dayLen) ||
           (user.checkedIn && now - +user.checkedIn >= dayLen)
         ) {
-          names.push(user.wechatName)
+          notCheckNames.push(user.wechatName)
           notCheckMap[user.wechat] = true
         }
       }
     }
     return {
+      leaveAtMap,
       notCheckMap,
-      names,
+      notCheckNames,
+      askForLeaveNames,
     }
   } catch (error) {
     console.error(`🌟[Notice]: 查找未签到用户错误`, error)
     return {
       notCheckMap: {},
-      names: [],
+      notCheckNames: [],
+      leaveAtMap: {},
+      askForLeaveNames: [],
     }
   }
 }

@@ -32,17 +32,24 @@ async function handleAdminMsg(msg: Message) {
   if (msgText === '1') {
     console.log(`🌟[Notice]: 查看今天未签到用户 - by ${from.name()}`)
     const tomorrow = utils.getTomorrowZero(new Date())
-    const { notCheckMap, names } = await getNotCheckInUsers(tomorrow)
-    if (names.length) {
-      const length = Object.keys(notCheckMap).length
-      from.say(
-        `截止至${tomorrow.toLocaleString()}，还有${length}位同学未打卡，@${names.join(
-          ' @',
-        )}`,
-      )
-    } else {
-      from.say(`所有人都完成了打卡`)
+    const { notCheckNames, askForLeaveNames } = await getNotCheckInUsers(
+      tomorrow,
+    )
+    let toSend = ''
+    if (notCheckNames.length) {
+      toSend += `截止至${tomorrow.toLocaleString()}，\n还有${
+        notCheckNames.length
+      }位同学未打卡，@${notCheckNames.join(' @')}`
     }
+    if (askForLeaveNames.length) {
+      toSend += `\n${
+        askForLeaveNames.length
+      }位同学请假，@${askForLeaveNames.join(' @')}`
+    }
+    if (!notCheckNames.length && !askForLeaveNames.length) {
+      toSend = '所有人都完成了打卡并且没有人请假'
+    }
+    from.say(toSend)
   }
 
   if (msgText === '2') {
