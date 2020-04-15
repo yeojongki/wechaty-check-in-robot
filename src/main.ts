@@ -139,14 +139,18 @@ async function start() {
 
   event.on(
     EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN,
-    async ({
-      useMessenger = true,
-      from,
-    }: {
-      useMessenger: Boolean
-      from?: Contact
-    }) => {
+    async (
+      params:
+        | {
+            useMessenger: Boolean
+            from?: Contact
+          }
+        | undefined,
+    ) => {
       console.log('🌟[Notice]: 开始检测三天内未打卡成员')
+      if (!params) {
+        params = { useMessenger: true }
+      }
       try {
         const now = +new Date()
         const users = await connection.getRepository(User).find()
@@ -183,6 +187,7 @@ async function start() {
             console.log(`🌟[Notice]: 准备在数据库中移除已不在群组的成员`) &&
             event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
 
+          const { useMessenger, from } = params
           if (notCheckedUsers) {
             notCheckedUsers = notCheckedUsers.substring(
               0,
