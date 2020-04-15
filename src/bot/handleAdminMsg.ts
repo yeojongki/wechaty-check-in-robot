@@ -25,7 +25,8 @@ async function handleAdminMsg(msg: Message) {
         '1. 查看当前未签到用户\n' +
         '2. 查看三天都未签到用户\n' +
         '3. 更新群成员信息\n' +
-        '4. 获取历史上的今天',
+        '4. 获取历史上的今天\n' +
+        '5. 查询用户信息, 格式为#用户微信名/微信号, 如5#yeojongki',
     )
   }
 
@@ -69,6 +70,33 @@ async function handleAdminMsg(msg: Message) {
     console.log(`🌟[Notice]: 获取历史上的今天 - by ${from.name()}`)
     const toSend = await getHistoryToday()
     from.say(toSend)
+  }
+
+  if (msgText.startsWith('5#')) {
+    const wechatOrName = msgText.replace('5#', '')
+    console.log(
+      `🌟[Notice]: 查询用户信息 - ${wechatOrName} - by ${from.name()}`,
+    )
+    const connection = await connect()
+    const user = await connection.getRepository(User).findOne({
+      where: [{ wechat: wechatOrName }, { wechatName: wechatOrName }],
+    })
+    if (user) {
+      from.say(
+        `id: ${user.id}\n` +
+          `微信号: ${user.wechat}\n` +
+          `微信名: ${user.wechatName}\n` +
+          `上次打卡: ${
+            user.checkedIn ? utils.parseTime(user.checkedIn) : '暂无'
+          }\n` +
+          `上次请假: ${
+            user.leaveAt ? utils.parseTime(user.leaveAt) : '暂无'
+          }\n` +
+          `进群时间: ${utils.parseTime(user.enterRoomDate)}`,
+      )
+    } else {
+      from.say('没有找到该用户')
+    }
   }
 }
 
