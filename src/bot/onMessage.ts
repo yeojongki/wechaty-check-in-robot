@@ -47,7 +47,7 @@ export async function onMessage(msg: Message) {
       const msgText = msg.text()
       const wechat = from.id
       const name = from.name()
-      const time = new Date()
+      const now = new Date()
 
       // 不处理 `@所有人`
       // 一般为管理员通知消息 可能会包含关键字 `打卡` or `请假`
@@ -61,7 +61,7 @@ export async function onMessage(msg: Message) {
         event.emit(EventTypes.ASK_FOR_LEAVE, {
           name,
           wechat,
-          time,
+          now,
         })
         await room.say(`@${name} 请假成功✅`)
 
@@ -75,7 +75,7 @@ export async function onMessage(msg: Message) {
         // 则认为用户是先发图片 再发文字 `打卡` 二字
         // 此时不做判断
         const lastCheckIn = LAST_CHECKED_IN.get(wechat)
-        if (lastCheckIn && +time - +lastCheckIn < ONE_MINUTE * 2) {
+        if (lastCheckIn && +now - +lastCheckIn < ONE_MINUTE * 2) {
           return
         }
 
@@ -110,20 +110,20 @@ export async function onMessage(msg: Message) {
           console.log(`🌟[Notice]: ${name} 已补充打卡内容, 移除警告定时器`)
         }
 
-        // 过滤三秒内重复打卡信息
+        // 过滤 1 分钟内重复打卡信息
         const lastCheckIn = LAST_CHECKED_IN.get(wechat)
-        if (lastCheckIn && +time - +lastCheckIn < 3000) {
+        if (lastCheckIn && +now - +lastCheckIn < ONE_MINUTE) {
           return
         }
 
         // 设置已打卡
-        LAST_CHECKED_IN.set(wechat, time)
+        LAST_CHECKED_IN.set(wechat, now)
 
         console.log(`📌[Check In]: 检测到打卡 - 用户「${wechat}」-「${name}」`)
         event.emit(EventTypes.CHECK_IN, {
           name,
           wechat,
-          time,
+          now,
         })
       }
     }

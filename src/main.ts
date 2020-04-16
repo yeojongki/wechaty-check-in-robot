@@ -10,7 +10,7 @@ import utils from './shared/utils'
 import Messenger from './shared/messenger'
 import checkTodayCheckInSchedule from './schedule'
 import getNotCheckInUsers from './shared/getNotCheckInUsers'
-import { THREE_DAY } from './constants/time'
+import { ONE_DAY } from './constants/time'
 import getHistoryToday from './shared/getHistoryToday'
 
 const targetRoomName = Config.getInstance().ROOM_NAME
@@ -21,7 +21,6 @@ async function start() {
   const connection = await connect()
 
   event.on(EventTypes.CHECK_IN, async ({ wechat, time, name }) => {
-    console.log('🌟[Notice]: 开始打卡')
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
       if (!toUpdate) {
@@ -38,7 +37,6 @@ async function start() {
   })
 
   event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, time, name }) => {
-    console.log('🌟[Notice]: 开始请假')
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
       if (!toUpdate) {
@@ -171,8 +169,8 @@ async function start() {
             if (!user.isWhiteList) {
               // 三天没有签到
               if (
-                (!user.checkedIn && now - +user.enterRoomDate >= THREE_DAY) ||
-                (user.checkedIn && now - +user.checkedIn >= THREE_DAY)
+                (!user.checkedIn && now - +user.enterRoomDate >= ONE_DAY * 3) ||
+                (user.checkedIn && now - +user.checkedIn >= ONE_DAY * 3)
               ) {
                 notCheckedUsers += `@${user.wechatName} `
                 if (room) {
