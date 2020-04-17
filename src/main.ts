@@ -70,7 +70,8 @@ async function start() {
 
         if (room) {
           const allUsers = await room.memberAll()
-          let notCheckUsers = ''
+          let notCheckUserNames = ''
+          let notCheckUsers: Contact[] = []
           let askForLeaveUsers = ''
           let notCheckCount = 0
           let askForLeaveCount = 0
@@ -81,7 +82,8 @@ async function start() {
               !isInRoom && toDeleteIds.push(user.id)
               if (isInRoom) {
                 notCheckCount++
-                notCheckUsers += `@${user.name()} `
+                notCheckUserNames += `@${user.name()} `
+                notCheckUsers.push(user)
               }
             }
             if (leaveAtMap[user.id]) {
@@ -96,15 +98,15 @@ async function start() {
 
           let toSend = '昨日打卡情况: \n'
 
-          // TODO: 名单太长可能需要分多条发送
-          if (notCheckCount) {
-            console.log(`🌟[Notice]: 昨日未打卡同学如下: ${notCheckUsers}`)
-            toSend += `${notCheckUsers} 以上${notCheckCount}位同学没有学习打卡噢，`
-          }
-
           if (askForLeaveCount) {
             console.log(`🌟[Notice]: 昨日请假同学如下: ${askForLeaveUsers}`)
             toSend += `共${askForLeaveCount}位同学请假，`
+          }
+
+          // TODO: 名单太长可能需要分多条发送
+          if (notCheckCount) {
+            console.log(`🌟[Notice]: 昨日未打卡同学如下: ${notCheckUserNames}`)
+            toSend += `以下${notCheckCount}位同学没有学习打卡噢`
           }
 
           // 确定最终发送内容
@@ -119,11 +121,11 @@ async function start() {
               '昨日除了请假的同学，其他同学都完成了打卡，争取全员打卡噢[加油]'
           }
 
-          // 所有人完成打卡并且无请假
+          // 无请假并且所有人完成打卡
           if (!askForLeaveCount && !notCheckCount) {
             toSend = '昨日所有同学都完成了打卡，棒棒哒！[哇]'
           }
-          await room.say(toSend)
+          await room.say(toSend, ...notCheckUsers)
 
           toDeleteIds.length &&
             console.log(`🌟[Notice]: 准备在数据库中移除已不在群组的成员`) &&

@@ -63,7 +63,7 @@ export async function onMessage(msg: Message) {
           wechat,
           now,
         })
-        await room.say(`@${name} 请假成功✅`)
+        await room.say`${from} 请假成功✅`
 
         // 如果请假了就不继续判断后续打卡情况
         return
@@ -85,7 +85,7 @@ export async function onMessage(msg: Message) {
         }
 
         const timer = setTimeout(async () => {
-          await room.say(`@${name} 打卡失败❌ 请补充打卡内容`)
+          await room.say`${from} 打卡失败❌ 请补充打卡内容`
         }, ONE_MINUTE * 3)
         WARN_NO_CONTENT.set(wechat, timer)
 
