@@ -20,14 +20,14 @@ async function start() {
   let robot: Wechaty | null = null
   const connection = await connect()
 
-  event.on(EventTypes.CHECK_IN, async ({ wechat, time, name }) => {
+  event.on(EventTypes.CHECK_IN, async ({ wechat, now, name }) => {
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
       if (!toUpdate) {
         toUpdate = new User()
         toUpdate.wechat = wechat
       }
-      toUpdate.checkedIn = time
+      toUpdate.checkedIn = now
       toUpdate.wechatName = name
       await connection.getRepository(User).save(toUpdate)
       console.log(`📦[DB]: 打卡数据写入成功`)
@@ -36,14 +36,14 @@ async function start() {
     }
   })
 
-  event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, time, name }) => {
+  event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, now, name }) => {
     try {
       let toUpdate = await findUserByWechat(connection, wechat)
       if (!toUpdate) {
         toUpdate = new User()
         toUpdate.wechat = wechat
       }
-      toUpdate.leaveAt = time
+      toUpdate.leaveAt = now
       toUpdate.wechatName = name
       await connection.getRepository(User).save(toUpdate)
       console.log(`📦[DB]: 请假数据写入成功`)
