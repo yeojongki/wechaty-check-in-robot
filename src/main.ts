@@ -96,17 +96,17 @@ async function start() {
             }
           }
 
-          let toSend = '昨日打卡情况: \n'
-
-          if (askForLeaveCount) {
-            console.log(`🌟[Notice]: 昨日请假同学如下: ${askForLeaveUsers}`)
-            toSend += `共${askForLeaveCount}位同学请假，`
-          }
+          let toSend = '\n'
 
           // TODO: 名单太长可能需要分多条发送
           if (notCheckCount) {
             console.log(`🌟[Notice]: 昨日未打卡同学如下: ${notCheckUserNames}`)
-            toSend += `以下${notCheckCount}位同学没有学习打卡噢`
+            toSend += `以上${notCheckCount}位昨日同学没有学习打卡噢，`
+          }
+
+          if (askForLeaveCount) {
+            console.log(`🌟[Notice]: 昨日请假同学如下: ${askForLeaveUsers}`)
+            toSend += `共${askForLeaveCount}位同学请假，`
           }
 
           // 确定最终发送内容
@@ -118,13 +118,14 @@ async function start() {
           // 除了请假的都打了卡
           if (askForLeaveCount && !notCheckCount) {
             toSend =
-              '昨日除了请假的同学，其他同学都完成了打卡，争取全员打卡噢[加油]'
+              '昨日除了请假的，其他同学都完成了打卡，争取全员打卡噢[加油]'
           }
 
           // 无请假并且所有人完成打卡
           if (!askForLeaveCount && !notCheckCount) {
             toSend = '昨日所有同学都完成了打卡，棒棒哒！[哇]'
           }
+          // mentionList 会在消息开始位置
           await room.say(toSend, ...notCheckUsers)
 
           toDeleteIds.length &&
