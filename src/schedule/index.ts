@@ -21,4 +21,8 @@ export default function checkTodayCheckInSchedule() {
   schedule.scheduleJob('0 0 9 * * *', () => {
     event.emit(EventTypes.GET_TODAY_HISTORY)
   })
+
+  schedule.scheduleJob('0 0 0 * * 1', () => {
+    event.emit(EventTypes.CHECK_WEEK_ASK_FOR_LEAVE)
+  })
 }

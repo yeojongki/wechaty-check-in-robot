@@ -25,6 +25,11 @@ export enum EventTypes {
   CHECK_THREE_DAY_NOT_CHECK_IN = 'CHECK_THREE_DAY_NOT_CHECK_IN',
 
   /**
+   * 检测一周内请假人员情况
+   */
+  CHECK_WEEK_ASK_FOR_LEAVE = 'CHECK_WEEK_ASK_FOR_LEAVE',
+
+  /**
    * 首次进入目标房间
    */
   FIRST_IN_TARGET_ROOM = 'FIRST_IN_TARGET_ROOM',

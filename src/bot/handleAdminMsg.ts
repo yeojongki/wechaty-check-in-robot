@@ -87,7 +87,7 @@ async function handleAdminMsg(msg: Message) {
           `微信号: ${user.wechat}\n` +
           `微信名: ${user.wechatName}\n` +
           `上次打卡: ${
-            user.checkedIn ? utils.parseTime(user.checkedIn) : '暂无'
+            user.signedAt ? utils.parseTime(user.signedAt) : '暂无'
           }\n` +
           `上次请假: ${
             user.leaveAt ? utils.parseTime(user.leaveAt) : '暂无'

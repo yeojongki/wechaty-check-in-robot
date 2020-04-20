@@ -37,9 +37,9 @@ export function connect(): Promise<Connection> {
 export function findUserByWechat(
   connection: Connection,
   wechat: string,
-): Promise<User | null> {
+): Promise<User> {
   return new Promise(async resolve => {
-    const user = await connection.getRepository(User).findOne({ wechat })
+    const user = await connection.getRepository(User).findOneOrFail({ wechat })
     resolve(user)
   })
 }

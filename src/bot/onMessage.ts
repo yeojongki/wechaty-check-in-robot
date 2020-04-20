@@ -59,11 +59,10 @@ export async function onMessage(msg: Message) {
           `✂️[Ask For Leave]: 检测到请假 - 用户「${wechat}」-「${name}」`,
         )
         event.emit(EventTypes.ASK_FOR_LEAVE, {
-          name,
+          from,
           wechat,
           now,
         })
-        await room.say`${from} 请假成功✅`
 
         // 如果请假了就不继续判断后续打卡情况
         return

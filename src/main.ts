@@ -22,12 +22,8 @@ async function start() {
 
   event.on(EventTypes.CHECK_IN, async ({ wechat, now, name }) => {
     try {
-      let toUpdate = await findUserByWechat(connection, wechat)
-      if (!toUpdate) {
-        toUpdate = new User()
-        toUpdate.wechat = wechat
-      }
-      toUpdate.checkedIn = now
+      const toUpdate = await findUserByWechat(connection, wechat)
+      toUpdate.signedAt = now
       toUpdate.wechatName = name
       await connection.getRepository(User).save(toUpdate)
       console.log(`📦[DB]: 打卡数据写入成功`)
@@ -36,15 +32,37 @@ async function start() {
     }
   })
 
-  event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, now, name }) => {
+  event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, now, from }) => {
     try {
-      let toUpdate = await findUserByWechat(connection, wechat)
-      if (!toUpdate) {
-        toUpdate = new User()
-        toUpdate.wechat = wechat
+      const toUpdate = await findUserByWechat(connection, wechat)
+      const name = from.name()
+      // 如果今天已经请假了 则不处理
+      if (
+        toUpdate.leaveAt &&
+        +utils.getTomorrowZero(toUpdate.leaveAt) === +utils.getTomorrowZero(now)
+      ) {
+        console.log(`🌟[Notice]: ${name} - ${wechat} 已请假 忽略`)
+        return
       }
+
+      const wechaty = robot ? robot : await initBot()
+      const room = await wechaty.Room.find(targetRoomName)
+      if (room) {
+        await room.say`${from} 请假成功✅`
+      }
+
+      // 不存在则写入当前时间
+      if (!toUpdate.lastLeaveAt) {
+        toUpdate.lastLeaveAt = now as Date
+      }
+      if (!toUpdate.leaveAt) {
+        toUpdate.leaveAt = now as Date
+      }
+
+      toUpdate.lastLeaveAt = toUpdate.leaveAt
       toUpdate.leaveAt = now
       toUpdate.wechatName = name
+      toUpdate.weekLeaveCount += 1
       await connection.getRepository(User).save(toUpdate)
       console.log(`📦[DB]: 请假数据写入成功`)
     } catch (error) {
@@ -169,11 +187,11 @@ async function start() {
           let notCheckedUsers: string = ''
 
           for (const user of users) {
-            if (!user.isWhiteList) {
+            if (!user.isWhitelist) {
               // 三天没有签到
               if (
-                (!user.checkedIn && now - +user.enterRoomDate >= ONE_DAY * 3) ||
-                (user.checkedIn && now - +user.checkedIn >= ONE_DAY * 3)
+                (!user.signedAt && now - +user.enterRoomDate >= ONE_DAY * 3) ||
+                (user.signedAt && now - +user.signedAt >= ONE_DAY * 3)
               ) {
                 notCheckedUsers += `@${user.wechatName} `
                 if (room) {
@@ -207,6 +225,38 @@ async function start() {
       }
     },
   )
+
+  event.on(EventTypes.CHECK_WEEK_ASK_FOR_LEAVE, async () => {
+    console.log('🌟[Notice]: 开始统计一周内请假情况')
+    try {
+      const now = +new Date()
+      const users = await connection.getRepository(User).find({
+        order: {
+          weekLeaveCount: 'DESC',
+        },
+      })
+      const usersToAt = users.filter(u => u.weekLeaveCount !== 0)
+      const usersToAtMap = new Map<string, boolean>()
+      usersToAt.forEach(u => {
+        usersToAtMap.set(u.wechat, true)
+      })
+
+      const wechaty = robot ? robot : await initBot()
+      const room = await wechaty.Room.find(targetRoomName)
+      const mentionList: Contact[] = []
+      if (room) {
+        const roomUsers = await room.memberAll()
+        for (const user of roomUsers) {
+          if (usersToAtMap.get(user.id)) {
+            mentionList.push(user)
+          }
+        }
+        // TODO send message to room
+      }
+    } catch (error) {
+      console.error('🏹[Event]: 统计一周内请假情况错误', error)
+    }
+  })
 
   event.on(EventTypes.FIRST_IN_TARGET_ROOM, async (room: Room) => {
     if (isInitUserDataIng) return
