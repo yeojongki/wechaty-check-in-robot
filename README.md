@@ -83,7 +83,7 @@ yarn build
 ### 6.3 其他的部署方式如 docker
 
 ## 7. 其他
-
+- [wechaty 接口文档](https://wechaty.js.org/api)
 - 机器人判定打卡功能很粗糙，有待完善
 - 将业务功能抽离处理
 - 开发更多功能

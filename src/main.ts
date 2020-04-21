@@ -251,12 +251,36 @@ async function start() {
             mentionList.push(user)
           }
         }
+        // wechaty.puppet.messageSendText(room.id, )
         // TODO send message to room
       }
     } catch (error) {
       console.error('🏹[Event]: 统计一周内请假情况错误', error)
     }
   })
+
+  event.on(
+    EventTypes.CUSTOM_SEND_MESSAGE,
+    async (
+      type: 'contact' | 'room',
+      from: Contact,
+      roomOrUser: string,
+      text: string,
+    ) => {
+      const wechaty = robot ? robot : await initBot()
+      if (type === 'contact') {
+        console.log(`🌟[Notice]: 开始查找用户 - ${roomOrUser}`)
+        const user = await wechaty.Contact.find(roomOrUser)
+        !user && (await from.say(`用户不存在 - ${roomOrUser}`))
+        user && (await user.say(text))
+      }
+      if (type === 'room') {
+        const room = await wechaty.Room.find(roomOrUser)
+        !room && (await from.say(`群组不存在 - ${roomOrUser}`))
+        room && (await room.say(text))
+      }
+    },
+  )
 
   event.on(EventTypes.FIRST_IN_TARGET_ROOM, async (room: Room) => {
     if (isInitUserDataIng) return

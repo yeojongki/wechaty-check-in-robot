@@ -98,6 +98,18 @@ async function handleAdminMsg(msg: Message) {
       from.say('没有找到该用户')
     }
   }
+
+  if (msgText.startsWith('room#')) {
+    const content = msgText.replace('room#', '')
+    const [room, text] = content.split('#')
+    event.emit(EventTypes.CUSTOM_SEND_MESSAGE, 'room', from, room, text)
+  }
+
+  if (msgText.startsWith('user#')) {
+    const content = msgText.replace('user#', '')
+    const [user, text] = content.split('#')
+    event.emit(EventTypes.CUSTOM_SEND_MESSAGE, 'user', from, user, text)
+  }
 }
 
 export default {

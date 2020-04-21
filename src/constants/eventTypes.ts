@@ -48,4 +48,9 @@ export enum EventTypes {
    * 历史上的今天
    */
   GET_TODAY_HISTORY = 'GET_TODAY_HISTORY',
+
+  /**
+   * 自定义发送
+   */
+  CUSTOM_SEND_MESSAGE = 'CUSTOM_SEND_MESSAGE',
 }
