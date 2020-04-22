@@ -262,22 +262,47 @@ async function start() {
   event.on(
     EventTypes.CUSTOM_SEND_MESSAGE,
     async (
-      type: 'contact' | 'room',
+      type: 'user' | 'room' | 'room@',
       from: Contact,
       roomOrUser: string,
       text: string,
+      names?: string[],
     ) => {
       const wechaty = robot ? robot : await initBot()
-      if (type === 'contact') {
+      if (type === 'user') {
         console.log(`🌟[Notice]: 开始查找用户 - ${roomOrUser}`)
         const user = await wechaty.Contact.find(roomOrUser)
-        !user && (await from.say(`用户不存在 - ${roomOrUser}`))
-        user && (await user.say(text))
+        if (user) {
+          await user.say(text)
+          console.log(`🌟[Notice]: 已发送消息 - ${text}`)
+        } else {
+          await from.say(`用户不存在 - ${roomOrUser}`)
+        }
       }
       if (type === 'room') {
         const room = await wechaty.Room.find(roomOrUser)
-        !room && (await from.say(`群组不存在 - ${roomOrUser}`))
-        room && (await room.say(text))
+        if (room) {
+          await room.say(text)
+          console.log(`🌟[Notice]: 已发送消息 - ${text}`)
+        } else {
+          await from.say(`群组不存在 - ${roomOrUser}`)
+        }
+      }
+      if (type === 'room@') {
+        const room = await wechaty.Room.find(roomOrUser)
+        if (room) {
+          let mentionList: Contact[] = []
+          if (names && names.length > 0) {
+            for (const name of names) {
+              const user = await room.member(name)
+              user && mentionList.push(user)
+            }
+          }
+          await room.say(text, ...mentionList)
+          console.log(`🌟[Notice]: 已发送消息 - ${text}`)
+        } else {
+          await from.say(`群组不存在 - ${roomOrUser}`)
+        }
       }
     },
   )

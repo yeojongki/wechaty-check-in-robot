@@ -105,6 +105,17 @@ async function handleAdminMsg(msg: Message) {
     event.emit(EventTypes.CUSTOM_SEND_MESSAGE, 'room', from, room, text)
   }
 
+  if (msgText.startsWith('room@')) {
+    const content = msgText.replace('room@', '')
+    const [room, text, users] = content.split('#')
+    if (!users) {
+      await from.say('没有@用户')
+      return
+    }
+    const names = users.split('@').filter(Boolean)
+    event.emit(EventTypes.CUSTOM_SEND_MESSAGE, 'room@', from, room, text, names)
+  }
+
   if (msgText.startsWith('user#')) {
     const content = msgText.replace('user#', '')
     const [user, text] = content.split('#')
