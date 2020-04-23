@@ -298,7 +298,11 @@ async function start() {
               user && mentionList.push(user)
             }
           }
-          await room.say(text, ...mentionList)
+          await wechaty.puppet.messageSendText(
+            room.id,
+            text,
+            mentionList.map(c => c.id),
+          )
           console.log(`🌟[Notice]: 已发送消息 - ${text}`)
         } else {
           await from.say(`群组不存在 - ${roomOrUser}`)
