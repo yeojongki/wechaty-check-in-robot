@@ -226,33 +226,47 @@ async function start() {
     },
   )
 
-  event.on(EventTypes.CHECK_WEEK_ASK_FOR_LEAVE, async () => {
-    console.log('🌟[Notice]: 开始统计一周内请假情况')
+  event.on(EventTypes.CHECK_WEEK_ASK_FOR_LEAVE, async (from?: Contact) => {
     try {
-      const now = +new Date()
       const users = await connection.getRepository(User).find({
         order: {
           weekLeaveCount: 'DESC',
         },
       })
       const usersToAt = users.filter(u => u.weekLeaveCount !== 0)
-      const usersToAtMap = new Map<string, boolean>()
+      const usersToAtMap = new Map<string, number>()
       usersToAt.forEach(u => {
-        usersToAtMap.set(u.wechat, true)
+        usersToAtMap.set(u.wechat, u.weekLeaveCount)
       })
 
       const wechaty = robot ? robot : await initBot()
       const room = await wechaty.Room.find(targetRoomName)
       const mentionList: Contact[] = []
+      let usersLeaveStr = ''
       if (room) {
         const roomUsers = await room.memberAll()
         for (const user of roomUsers) {
-          if (usersToAtMap.get(user.id)) {
+          if (usersToAtMap.has(user.id)) {
+            const name = (await room.alias(user)) || user.name()
+            usersLeaveStr += `@${name} - ${usersToAtMap.get(user.id)}次 \n`
             mentionList.push(user)
           }
         }
-        // wechaty.puppet.messageSendText(room.id, )
-        // TODO send message to room
+        if (!mentionList.length) {
+          const msg = '7天内没有用户请假'
+          console.log(`🌟[Notice]: ${msg}`)
+          from && from.say(msg)
+          return
+        }
+
+        const finalText = `以下是本周请假次数统计：\n${usersLeaveStr}`
+        console.log(`🌟[Notice]: ${finalText.replace(/\n/g, '')}`)
+        await wechaty.puppet.messageSendText(
+          from ? from.id : room.id,
+          finalText,
+          mentionList.map(c => c.id),
+        )
+        // TODO 删除本周请假数据
       }
     } catch (error) {
       console.error('🏹[Event]: 统计一周内请假情况错误', error)
