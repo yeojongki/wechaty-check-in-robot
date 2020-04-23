@@ -21,12 +21,16 @@ async function handleAdminMsg(msg: Message) {
   const from = msg.from()!
   if (msgText === '菜单' || msgText === '/start' || msgText === '/help') {
     from.say(
-      '请发送对应数字\n' +
+      '请发送对应数字或指令\n' +
         '1. 查看当前未签到用户\n' +
         '2. 查看三天都未签到用户\n' +
         '3. 更新群成员信息\n' +
         '4. 获取历史上的今天\n' +
-        '5. 查询用户信息, 格式为#用户微信名/微信号, 如5#yeojongki',
+        '5. 获取一周内请假情况\n' +
+        '6. 查询用户信息, 格式为#用户微信名/微信号, 如6#yeojongki\n' +
+        '和用户私聊: user#待发送用户名#待发送信息\n' +
+        '在群聊中发送消息: room#群组名#发送到群聊中的信息\n' +
+        '在群聊中发送消息并@用户: room@群组名#发送到群聊中的信息#@用户1@用户2',
     )
   }
 
@@ -72,8 +76,13 @@ async function handleAdminMsg(msg: Message) {
     from.say(toSend)
   }
 
-  if (msgText.startsWith('5#')) {
-    const wechatOrName = msgText.replace('5#', '')
+  if (msgText === '5') {
+    console.log(`🌟[Notice]: 获取一周内请假情况 - by ${from.name()}`)
+    event.emit(EventTypes.CHECK_WEEK_ASK_FOR_LEAVE, from)
+  }
+
+  if (msgText.startsWith('6#')) {
+    const wechatOrName = msgText.replace('6#', '')
     console.log(
       `🌟[Notice]: 查询用户信息 - ${wechatOrName} - by ${from.name()}`,
     )
