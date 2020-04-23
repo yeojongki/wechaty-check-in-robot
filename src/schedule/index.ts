@@ -18,6 +18,10 @@ export default function checkTodayCheckInSchedule() {
     event.emit(EventTypes.CHECK_THREE_DAY_NOT_CHECK_IN)
   })
 
+  schedule.scheduleJob('0 0 6 * * *', () => {
+    event.emit(EventTypes.UPDATE_ROOM_USER)
+  })
+
   schedule.scheduleJob('0 0 9 * * *', () => {
     event.emit(EventTypes.GET_TODAY_HISTORY)
   })

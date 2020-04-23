@@ -399,7 +399,7 @@ async function start() {
     room && room.say(toSend)
   })
 
-  event.on(EventTypes.UPDATE_ROOM_USER, async (toUser: Contact) => {
+  event.on(EventTypes.UPDATE_ROOM_USER, async (toUser?: Contact) => {
     const wechaty = robot ? robot : await initBot()
     const room = await wechaty.Room.find(targetRoomName)
     if (room) {
@@ -450,14 +450,14 @@ async function start() {
         Promise.all(pList)
           .then(() => {
             console.log(`📦[DB]: 所有用户信息更新成功 - ${toChange}`)
-            toUser.say(toChange)
+            toUser && toUser.say(toChange)
           })
           .catch(err => {
             console.error('📦[DB]: 所有用户信息更新失败', toChange, err)
           })
       } else {
         console.log(`🌟[Notice]: 暂无更新~`)
-        toUser.say('暂无更新~')
+        toUser && toUser.say('暂无更新~')
       }
     }
   })
