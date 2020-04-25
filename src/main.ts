@@ -1,4 +1,5 @@
 import 'reflect-metadata'
+import { MoreThan } from 'typeorm'
 import Config from './config'
 import { connect, findUserByWechat } from './database'
 import { initBot } from './bot/wechaty'
@@ -228,12 +229,12 @@ async function start() {
 
   event.on(EventTypes.CHECK_WEEK_ASK_FOR_LEAVE, async (from?: Contact) => {
     try {
-      const users = await connection.getRepository(User).find({
+      const usersToAt = await connection.getRepository(User).find({
+        where: { weekLeaveCount: MoreThan(0) },
         order: {
           weekLeaveCount: 'DESC',
         },
       })
-      const usersToAt = users.filter(u => u.weekLeaveCount !== 0)
       const usersToAtMap = new Map<string, number>()
       usersToAt.forEach(u => {
         usersToAtMap.set(u.wechat, u.weekLeaveCount)
@@ -263,10 +264,18 @@ async function start() {
         console.log(`🌟[Notice]: ${finalText.replace(/\n/g, '')}`)
         await wechaty.puppet.messageSendText(
           from ? from.id : room.id,
-          finalText,
+          finalText.replace(/\n$/, ''),
           mentionList.map(c => c.id),
         )
-        // TODO 删除本周请假数据
+
+        console.log(`🌟[Notice]: 开始清空以上用户上周的请假次数`)
+        await connection
+          .createQueryBuilder()
+          .update(User)
+          .set({ weekLeaveCount: 0 })
+          .where(usersToAt.map(i => ({ wechat: i.wechat })))
+          .execute()
+        console.log(`🌟[Notice]: 成功清空✅`)
       }
     } catch (error) {
       console.error('🏹[Event]: 统计一周内请假情况错误', error)
