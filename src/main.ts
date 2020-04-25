@@ -268,6 +268,8 @@ async function start() {
           mentionList.map(c => c.id),
         )
 
+        // 主动查看时 不清空数据
+        if (from) return
         console.log(`🌟[Notice]: 开始清空以上用户上周的请假次数`)
         await connection
           .createQueryBuilder()
