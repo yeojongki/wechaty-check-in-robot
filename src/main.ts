@@ -518,9 +518,11 @@ async function start() {
           console.log(`🌟[Notice]: 检测到有人离开了群聊`)
           let nameList = ''
           let wechatIdList = ''
+          const toDeleteIds: string[] = []
           leaverList.forEach(user => {
             nameList += `${user.name()},`
             wechatIdList += `${user.id},`
+            toDeleteIds.push(user.id)
           })
           nameList = nameList.substring(0, nameList.length - 1)
           console.log(
@@ -528,6 +530,7 @@ async function start() {
               remover ? ` by - ${remover.name()}` : ''
             }`,
           )
+          event.emit(EventTypes.DB_REMOVE_USER, toDeleteIds)
           Messenger.send('离开群聊名单：', nameList)
         })
       }
