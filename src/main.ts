@@ -33,6 +33,18 @@ async function start() {
     }
   })
 
+  event.on(EventTypes.FILL_CARD, async ({ wechat, now, name }) => {
+    try {
+      const toUpdate = await findUserByWechat(connection, wechat)
+      toUpdate.signedAt = utils.getYesterday59s(now)
+      toUpdate.wechatName = name
+      await connection.getRepository(User).save(toUpdate)
+      console.log(`📦[DB]: 补卡数据写入成功`)
+    } catch (error) {
+      console.log(`📦[DB]: 补卡数据写入失败`, error)
+    }
+  })
+
   event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, now, from }) => {
     try {
       const toUpdate = await findUserByWechat(connection, wechat)

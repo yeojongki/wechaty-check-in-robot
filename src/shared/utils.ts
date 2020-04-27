@@ -39,6 +39,23 @@ function getTomorrowZero(date: Date): Date {
 }
 
 /**
+ * 获取昨天最后一秒的时间
+ * 如 2020/04/27 00:23:23 -> 2020/04/26 23:59:59
+ */
+function getYesterday59s(date: Date): Date {
+  const day = date.getDate()
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+
+  const yesterday = new Date(+new Date(`${year}/${month}/${day}`) - 86400000)
+  return new Date(
+    `${yesterday.getFullYear()}/${
+      yesterday.getMonth() + 1
+    }/${yesterday.getDate()} 23:59:59`,
+  )
+}
+
+/**
  * 解析日期
  * @param time
  * @param format
@@ -85,5 +102,6 @@ export default {
   checkUserDataIsInit,
   setUserDataIsInit,
   getTomorrowZero,
+  getYesterday59s,
   parseTime,
 }

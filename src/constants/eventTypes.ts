@@ -53,4 +53,9 @@ export enum EventTypes {
    * 自定义发送
    */
   CUSTOM_SEND_MESSAGE = 'CUSTOM_SEND_MESSAGE',
+
+  /**
+   * 补卡
+   */
+  FILL_CARD = 'FILL_CARD',
 }
