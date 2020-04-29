@@ -19,18 +19,19 @@ async function checkIsAdmin(wechat: string) {
 async function handleAdminMsg(msg: Message) {
   const msgText = msg.text()
   const from = msg.from()!
-  if (msgText === '菜单' || msgText === '/start' || msgText === '/help') {
+  if (msgText === '/menu' || msgText === '/start' || msgText === '/help') {
     from.say(
       '请发送对应数字或指令\n' +
         '1. 查看当前未签到用户\n' +
         '2. 查看三天都未签到用户\n' +
         '3. 更新群成员信息\n' +
-        '4. 获取历史上的今天\n' +
-        '5. 获取一周内请假情况\n' +
-        '6. 查询用户信息, 格式为#用户微信名/微信号, 如6#yeojongki\n' +
-        '和用户私聊: user#待发送用户名#待发送信息\n' +
-        '在群聊中发送消息: room#群组名#发送到群聊中的信息\n' +
-        '在群聊中发送消息并@用户: room@群组名#发送到群聊中的信息#@用户1@用户2',
+        '4. 获取一周内请假情况\n' +
+        '5. 获取历史上的今天\n' +
+        '\n' +
+        '✨ 查询用户信息: find#用户微信名/微信号\n' +
+        '✨ 和用户私聊: user#待发送用户名#待发送信息\n' +
+        '✨ 在群聊中发送消息: room#群组名#发送到群聊中的信息\n' +
+        '✨ 在群聊中发送消息并@用户: room@群组名#发送到群聊中的信息#@用户1@用户2',
     )
   }
 
@@ -71,18 +72,18 @@ async function handleAdminMsg(msg: Message) {
   }
 
   if (msgText === '4') {
+    console.log(`🌟[Notice]: 获取一周内请假情况 - by ${from.name()}`)
+    event.emit(EventTypes.CHECK_WEEK_ASK_FOR_LEAVE, from)
+  }
+
+  if (msgText === '5') {
     console.log(`🌟[Notice]: 获取历史上的今天 - by ${from.name()}`)
     const toSend = await getHistoryToday()
     from.say(toSend)
   }
 
-  if (msgText === '5') {
-    console.log(`🌟[Notice]: 获取一周内请假情况 - by ${from.name()}`)
-    event.emit(EventTypes.CHECK_WEEK_ASK_FOR_LEAVE, from)
-  }
-
-  if (msgText.startsWith('6#')) {
-    const wechatOrName = msgText.replace('6#', '')
+  if (msgText.startsWith('find#')) {
+    const wechatOrName = msgText.replace('find#', '')
     console.log(
       `🌟[Notice]: 查询用户信息 - ${wechatOrName} - by ${from.name()}`,
     )

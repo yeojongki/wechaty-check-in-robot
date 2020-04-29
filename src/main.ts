@@ -33,6 +33,18 @@ async function start() {
     }
   })
 
+  event.on(EventTypes.FILL_CARD, async ({ wechat, now, name }) => {
+    try {
+      const toUpdate = await findUserByWechat(connection, wechat)
+      toUpdate.signedAt = utils.getYesterday59s(now)
+      toUpdate.wechatName = name
+      await connection.getRepository(User).save(toUpdate)
+      console.log(`📦[DB]: 补卡数据写入成功`)
+    } catch (error) {
+      console.log(`📦[DB]: 补卡数据写入失败`, error)
+    }
+  })
+
   event.on(EventTypes.ASK_FOR_LEAVE, async ({ wechat, now, from }) => {
     try {
       const toUpdate = await findUserByWechat(connection, wechat)
@@ -424,21 +436,29 @@ async function start() {
 
       const pList: Promise<User>[] = []
       let toChange: string = ''
+      const repository = connection.getRepository(User)
       for (const user of roomUsers) {
         // { id: boolean }
 
-        let dbUser = await connection
-          .getRepository(User)
-          .findOne({ wechat: user.id })
+        let dbUser = await repository.findOne({ wechat: user.id })
         const newName = user.name()
+        // 用户不存在数据库中 新增用户
+        if (!dbUser) {
+          const newUser = new User()
+          newUser.enterRoomDate = new Date()
+          newUser.wechat = user.id
+          newUser.wechatName = newName
+          pList.push(connection.getRepository(User).save(newUser))
+          toChange += `新增用户「${user.id}」-「${newName}」\n`
+        }
         if (dbUser && dbUser.wechatName !== newName) {
-          toChange += `用户名从「${dbUser.wechatName}」变成「${newName}」\n`
+          toChange += `「${dbUser.wechatName}」修改了微信名 ➡️「${newName}」\n`
           dbUser.wechatName = newName
-          pList.push(connection.getRepository(User).save(dbUser))
+          pList.push(repository.save(dbUser))
         }
       }
 
-      const dbUsers = await connection.getRepository(User).find()
+      const dbUsers = await repository.find()
       const toDeleteUsers: User[] = dbUsers.filter(
         u => !currentUserMap.has(u.wechat),
       )

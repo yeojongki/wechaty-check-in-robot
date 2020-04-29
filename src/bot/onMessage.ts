@@ -68,9 +68,10 @@ export async function onMessage(msg: Message) {
         return
       }
 
-      // 只有 `打卡` 两个字
-      if (msgText === '打卡') {
-        // 如果本次发送 `打卡` 距离上次打卡成功时间低于 2 分钟
+      const isFillCard = /补卡|补打卡|补昨天/.test(msgText)
+      // 只有纯打卡内容 会发起警告
+      if (msgText === '打卡' || msgText === '补卡' || msgText === '补打卡') {
+        // 如果本次发送 `打卡` 且距离上次打卡成功时间低于 2 分钟
         // 则认为用户是先发图片 再发文字 `打卡` 二字
         // 此时不做判断
         const lastCheckIn = LAST_CHECKED_IN.get(wechat)
@@ -84,7 +85,9 @@ export async function onMessage(msg: Message) {
         }
 
         const timer = setTimeout(async () => {
-          await room.say`${from} 打卡失败❌ 请补充打卡内容`
+          await room.say`${from} ${
+            isFillCard ? '补' : '打'
+          }卡失败❌ 请补充打卡内容`
         }, ONE_MINUTE * 3)
         WARN_NO_CONTENT.set(wechat, timer)
 
@@ -115,11 +118,15 @@ export async function onMessage(msg: Message) {
           return
         }
 
-        // 设置已打卡
+        // 记录已打卡
         LAST_CHECKED_IN.set(wechat, now)
 
-        console.log(`📌[Check In]: 检测到打卡 - 用户「${wechat}」-「${name}」`)
-        event.emit(EventTypes.CHECK_IN, {
+        console.log(
+          `📌[Check In]: 检测到${
+            isFillCard ? '补' : '打'
+          }卡 - 用户「${wechat}」-「${name}」`,
+        )
+        event.emit(isFillCard ? EventTypes.FILL_CARD : EventTypes.CHECK_IN, {
           name,
           wechat,
           now,
