@@ -113,11 +113,13 @@ const emojiNum = {
 }
 
 function genEmojiNum(number: number) {
-  // @ts-ignore
-  return (number + '')
-    .split('')
-    .map(i => emojiNum[i])
-    .join('')
+  return (
+    (number + '')
+      .split('')
+      // @ts-ignore
+      .map(i => emojiNum[i])
+      .join('')
+  )
 }
 
 export default {
