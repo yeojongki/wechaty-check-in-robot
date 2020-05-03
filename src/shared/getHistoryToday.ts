@@ -1,6 +1,7 @@
 import axios from 'axios'
 import fs from 'fs'
 import * as path from 'path'
+import utils from './utils'
 
 export interface IHistoryTodayItem {
   recommend: boolean
@@ -77,13 +78,8 @@ function fetchData(url: string): Promise<IHistoryToday> {
   })
 }
 
-function extracText(str: string, len = str.length - 1) {
-  str = str.replace('</a>', '')
-  const start = str.indexOf('<a')
-  const end = str.indexOf('">')
-  let result = str.substring(0, start)
-  result += str.substring(end, len)
-  return result.replace('">', '')
+function extracText(str: string) {
+  return str.replace('\n', '').replace(/<\/?a.*?>/g, '')
 }
 
 export default function getHistoryToday(): Promise<string> {
@@ -127,10 +123,10 @@ export default function getHistoryToday(): Promise<string> {
         if (index === 0) {
           toSend += `👀 ${
             item.festival ? `今天是${item.festival}，` : ''
-          }一起来看看历史上的今天发生了什么吧：\n\n`
+          }一起来看看历史上的今天发生了什么吧\n\n`
         }
         const title = extracText(item.title)
-        toSend += `${item.year}年 - ${extracText(title)}${
+        toSend += `${utils.genEmojiNum(index + 1)} ${item.year}年 - ${title}${
           index === recommendAll.length - 1 ? '' : '\n'
         }`
       })

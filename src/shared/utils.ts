@@ -60,7 +60,7 @@ function getYesterday59s(date: Date): Date {
  * @param time
  * @param format
  */
-export function parseTime(
+function parseTime(
   time: string | number | Date,
   format = '{y}-{m}-{d} {h}:{i}:{s}',
 ): string {
@@ -98,10 +98,33 @@ export function parseTime(
   return time_str
 }
 
+const emojiNum = {
+  0: '0️⃣',
+  1: '1️⃣',
+  2: '2️⃣',
+  3: '3️⃣',
+  4: '4️⃣',
+  5: '5️⃣',
+  6: '6️⃣',
+  7: '7️⃣',
+  8: '8️⃣',
+  9: '9️⃣',
+  10: '🔟️',
+}
+
+function genEmojiNum(number: number) {
+  // @ts-ignore
+  return (number + '')
+    .split('')
+    .map(i => emojiNum[i])
+    .join('')
+}
+
 export default {
   checkUserDataIsInit,
   setUserDataIsInit,
   getTomorrowZero,
   getYesterday59s,
   parseTime,
+  genEmojiNum,
 }
