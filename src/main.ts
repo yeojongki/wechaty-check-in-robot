@@ -425,6 +425,7 @@ async function start() {
       })
       if (user) {
         const lastDate = user.signedAt
+        console.log(`📦[DB]: 修改前日期: ${date}`)
         user.signedAt = date
         await repository.save(user)
         await from.say(
@@ -433,6 +434,7 @@ async function start() {
           }\n修改后：${utils.parseTime(date)}`,
         )
       } else {
+        console.log(`📦[DB]: 该用户不存在 - ${wechatOrName}`)
         await from.say(`该用户不存在 - ${wechatOrName}`)
       }
     },

@@ -106,7 +106,7 @@ async function handleAdminMsg(msg: Message) {
           `进群时间: ${utils.parseTime(user.enterRoomDate)}`,
       )
     } else {
-      from.say('没有找到该用户')
+      from.say('❌没有找到该用户')
     }
   }
 
@@ -122,7 +122,7 @@ async function handleAdminMsg(msg: Message) {
     const content = msgText.replace('room@', '')
     const [room, text, users] = content.split('#')
     if (!users) {
-      await from.say('没有@用户')
+      await from.say('❌没有@用户')
       return
     }
     const names = users.split('@').filter(Boolean)
@@ -142,7 +142,7 @@ async function handleAdminMsg(msg: Message) {
     const [user, date] = content.split('#')
     const _date = new Date(date)
     if (_date.toString() === 'Invalid Date') {
-      await from.say('非法日期')
+      await from.say('❌非法日期')
       return
     }
     event.emit(EventTypes.EDIT_USER_SIGN_AT_DATE, from, user, _date)
