@@ -414,6 +414,30 @@ async function start() {
         })
   })
 
+  event.on(
+    EventTypes.EDIT_USER_SIGN_AT_DATE,
+    async (from: Contact, wechatOrName: string, date: Date) => {
+      console.log(`📦[DB]: 修改用户签到日期: ${wechatOrName} - ${date}`)
+      const repository = connection.getRepository(User)
+
+      let user = await repository.findOne({
+        where: [{ wechat: wechatOrName }, { wechatName: wechatOrName }],
+      })
+      if (user) {
+        const lastDate = user.signedAt
+        user.signedAt = date
+        await repository.save(user)
+        await from.say(
+          `✅修改成功 - @${wechatOrName}\n修改前：${
+            lastDate ? utils.parseTime(lastDate) : '无'
+          }\n修改后：${utils.parseTime(date)}`,
+        )
+      } else {
+        await from.say(`该用户不存在 - ${wechatOrName}`)
+      }
+    },
+  )
+
   event.on(EventTypes.GET_TODAY_HISTORY, async () => {
     console.log(`🌟[Notice]: 开始获取历史上的今天`)
     const toSend = await getHistoryToday()

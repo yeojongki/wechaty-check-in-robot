@@ -58,4 +58,9 @@ export enum EventTypes {
    * 补卡
    */
   FILL_CARD = 'FILL_CARD',
+
+  /**
+   * 修改用户打卡日期
+   */
+  EDIT_USER_SIGN_AT_DATE = 'EDIT_USER_SIGN_AT_DATE',
 }

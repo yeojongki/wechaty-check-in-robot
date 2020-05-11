@@ -28,6 +28,7 @@ async function handleAdminMsg(msg: Message) {
         '4. 获取一周内请假情况\n' +
         '5. 获取历史上的今天\n' +
         '\n' +
+        '✨ 修改用户打卡日期: editSign#用户微信名/微信号#日期\n' +
         '✨ 查询用户信息: find#用户微信名/微信号\n' +
         '✨ 和用户私聊: user#待发送用户名#待发送信息\n' +
         '✨ 在群聊中发送消息: room#群组名#发送到群聊中的信息\n' +
@@ -110,12 +111,14 @@ async function handleAdminMsg(msg: Message) {
   }
 
   if (msgText.startsWith('room#')) {
+    console.log(`🌟[Notice]: 在群聊中发送消息 - by ${from.name()}`)
     const content = msgText.replace('room#', '')
     const [room, text] = content.split('#')
     event.emit(EventTypes.CUSTOM_SEND_MESSAGE, 'room', from, room, text)
   }
 
   if (msgText.startsWith('room@')) {
+    console.log(`🌟[Notice]: 在群聊中发送消息并@用户 - by ${from.name()}`)
     const content = msgText.replace('room@', '')
     const [room, text, users] = content.split('#')
     if (!users) {
@@ -127,9 +130,22 @@ async function handleAdminMsg(msg: Message) {
   }
 
   if (msgText.startsWith('user#')) {
+    console.log(`🌟[Notice]: 和用户私聊 - by ${from.name()}`)
     const content = msgText.replace('user#', '')
     const [user, text] = content.split('#')
     event.emit(EventTypes.CUSTOM_SEND_MESSAGE, 'user', from, user, text)
+  }
+
+  if (msgText.startsWith('editSign#')) {
+    console.log(`🌟[Notice]: 修改用户打卡日期 - by ${from.name()}`)
+    const content = msgText.replace('editSign#', '')
+    const [user, date] = content.split('#')
+    const _date = new Date(date)
+    if (_date.toString() === 'Invalid Date') {
+      await from.say('非法日期')
+      return
+    }
+    event.emit(EventTypes.EDIT_USER_SIGN_AT_DATE, from, user, _date)
   }
 }
 
