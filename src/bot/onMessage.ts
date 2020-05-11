@@ -97,8 +97,9 @@ export async function onMessage(msg: Message) {
         return
       }
 
-      // 判定打卡成功
+      // 判定打卡、补卡成功
       if (
+        isFillCard ||
         msgText.includes('打卡') ||
         msg.type() === MessageType.Image ||
         msg.type() === MessageType.Video ||
