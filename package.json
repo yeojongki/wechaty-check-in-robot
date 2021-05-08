@@ -39,7 +39,7 @@
     "node-schedule": "^1.3.2",
     "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.1.13",
-    "typeorm": "^0.2.24",
+    "typeorm": "^0.2.25",
     "wechaty": "^0.38.4",
     "wechaty-puppet-padplus": "^0.6.2"
   },
